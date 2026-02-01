@@ -36,7 +36,7 @@ elif x == "2":
     subprocess.call(bat_file)
 
 elif x == "3":
-        webbrowser.open("http://tomandesmsh.github.io/KASPARDocs/scripts.html")
+        webbrowser.open("https://tomandesmsh.github.io/KASPARDocs/scripts.html#rmenu")
         print("Opening docs...")
 
 else:

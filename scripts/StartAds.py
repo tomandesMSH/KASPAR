@@ -28,7 +28,7 @@ try:
         print("Start menu suggestions/ads reverted to default!")
 
     elif x == "3":
-        webbrowser.open("https://www.google.com")
+        webbrowser.open("https://tomandesmsh.github.io/KASPARDocs/scripts.html#startads")
         print("Opening docs...")
 
     else:
