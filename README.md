@@ -1,6 +1,6 @@
 # KASPAR
 [![Documentation](https://img.shields.io/badge/Documentation-–?style=for-the-badge&logo=gitbook&color=blue)](https://tomandesmsh.github.io/KASPARDocs/)
-![Logo](https://tomandesmsh.github.io/KASPAR/files/kasparlogo.png)
+![Logo](https://github.com/tomandesMSH/KASPAR/blob/main/files/kasparlogo.png?raw=true)
 ## ℹ️About Kaspar
 
 Kaspar is a powerful Windows utility that gives you access to hidden and normally inaccessible system settings. 
