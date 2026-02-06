@@ -1,5 +1,5 @@
 Afghanistan
-Aland Islands
+Åland Islands
 Albania
 Algeria
 American Samoa
@@ -8,9 +8,9 @@ Angola
 Anguilla
 Antarctica
 Antigua and Barbuda
-Aruba
 Argentina
 Armenia
+Aruba
 Australia
 Austria
 Azerbaijan
@@ -22,8 +22,6 @@ Belarus
 Belgium
 Belize
 Benin
-Benin
-Bermuda
 Bermuda
 Bhutan
 Bolivia
@@ -31,14 +29,13 @@ Bonaire, Sint Eustatius and Saba
 Bosnia and Herzegovina
 Botswana
 Bouvet Island
-Bpununt
 Brazil
 British Indian Ocean Territory
 British Virgin Islands
 Brunei
 Bulgaria
-Bulgaria
 Burkina Faso
+Burundi
 Cabo Verde
 Cambodia
 Cameroon
@@ -56,10 +53,10 @@ Congo
 Congo (DRC)
 Cook Islands
 Costa Rica
-Cote d'lvoire
-Cqna
+Côte d'Ivoire
+Cuba
 Croatia
-Curacao
+Curaçao
 Cyprus
 Czech Republic
 Denmark
@@ -124,13 +121,25 @@ Kosovo
 Kuwait
 Kyrgyzstan
 Laos
+Latvia
+Lebanon
+Lesotho
+Liberia
+Libya
+Liechtenstein
+Lithuania
+Luxembourg
+Macao SAR
+Madagascar
+Malawi
+Malaysia
 Maldives
 Mali
 Malta
 Marshall Islands
 Martinique
 Mauritania
-Mauritus
+Mauritius
 Mayotte
 Mexico
 Micronesia
@@ -144,11 +153,12 @@ Mozambique
 Myanmar
 Namibia
 Nauru
-Neat
+Nepal
 Netherlands
 New Caledonia
 New Zealand
 Nicaragua
+Niger
 Nigeria
 Niue
 Norfolk Island
@@ -170,7 +180,7 @@ Poland
 Portugal
 Puerto Rico
 Qatar
-Reunion
+Réunion
 Romania
 Russia
 Rwanda
@@ -182,6 +192,7 @@ Saint Pierre and Miquelon
 Saint Vincent and the Grenadines
 Samoa
 San Marino
+São Tomé and Príncipe
 Saudi Arabia
 Senegal
 Serbia
@@ -205,7 +216,6 @@ Svalbard
 Sweden
 Switzerland
 Syria
-Säo Tomé and Principe
 Taiwan
 Tajikistan
 Tanzania
@@ -216,10 +226,10 @@ Tokelau
 Tonga
 Trinidad and Tobago
 Tunisia
+Türkiye
 Turkmenistan
 Turks and Caicos Islands
 Tuvalu
-Türkiye
 U.S. Minor Outlying Islands
 U.S. Virgin Islands
 Uganda
