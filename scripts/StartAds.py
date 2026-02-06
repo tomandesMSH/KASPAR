@@ -40,3 +40,5 @@ except FileNotFoundError:
     print("Registry path not found. Your Windows version might be different.")
 except Exception as e:
     print(f"An error occurred: {e}")
+
+input("Press Enter to exit...")

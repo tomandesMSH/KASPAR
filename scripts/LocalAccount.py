@@ -38,4 +38,5 @@ if admin == "y":
     print("User created as administrator.")
 else:
     print("User created as standard user.")
-input("")
+
+input("Press Enter to exit...")

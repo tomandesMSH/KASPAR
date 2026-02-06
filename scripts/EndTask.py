@@ -33,3 +33,5 @@ elif x == "3":
 
 else:
     print("Incorrect.")
+
+input("Press Enter to exit...")

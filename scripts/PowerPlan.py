@@ -84,4 +84,4 @@ elif x == "3":
 else:
     print("Incorrect.")
 
-input("")
+input("Press Enter to exit...")
