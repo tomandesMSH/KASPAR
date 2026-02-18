@@ -2,9 +2,8 @@
 
 ## About
 This script allows you to install Windows **without needing an internet connection**.
-It creates a **local account** during setup for you.
-
 Made with love to make the installation process faster and less painful.
+It creates a **local account** during setup for you.
 Your name will be set to KASPAR.
 
 ## How to use
