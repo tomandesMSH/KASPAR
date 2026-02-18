@@ -75,4 +75,6 @@ elif x == "4":
     webbrowser.open("https://tomandesmsh.github.io/KASPARDocs/scripts.html#shutdownanddontupdate")
 
 else:
-    print("Invalid selection. Exiting...")
+    print("Invalid.")
+
+input("Press Enter to exit...")
