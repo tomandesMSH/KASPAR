@@ -302,8 +302,8 @@
       <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/about.html')"><span class="nav-icon"></span> About KASPAR</div>
       <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/index.html')"><span class="nav-icon"></span> Documentation</div>
       <div class="nav-item" onclick="window.open('https://github.com/tomandesmsh/KASPAR')"><span class="nav-icon"></span> GitHub</div>
-      <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/bug.html')"><span class="nav-icon"></span> Report a bug</div>
-      <div class="nav-item" onclick="window.open('https://forms.gle/pxvZQtuw6dKZWEZv8')"><span class="nav-icon"></span> Suggestions</div>
+      <div class="nav-item" onclick="if(window.electronAPI?.openExternal){window.electronAPI.openExternal('https://tomandesmsh.github.io/KASPARDocs/bug.html')}else{window.open('https://tomandesmsh.github.io/KASPARDocs/bug.html')}"><span class="nav-icon"></span> Report a bug</div>
+      <div class="nav-item" onclick="if(window.electronAPI?.openExternal){window.electronAPI.openExternal('https://forms.gle/pxvZQtuw6dKZWEZv8')}else{window.open('https://forms.gle/pxvZQtuw6dKZWEZv8')}"><span class="nav-icon"></span> Suggestions</div>
     </nav>
     <div class="sidebar-footer">
       <div class="version">Tomáš Vaněk - Kaspar</div>
