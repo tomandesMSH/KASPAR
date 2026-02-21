@@ -12,7 +12,7 @@ print("1 - Apply this tweak.")
 print("2 - Revert to default settings.")
 print("3 - Docs")
 
-x = input("Choose an option (1/2/3): ")
+x = input("")
 
 key_path = r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
 

@@ -19,8 +19,8 @@ It allows advanced users to tweak Windows behavior safely, like modifying regist
 ## ❓How to use
 
 1. Clone or download the repository.
-2. R̶u̶n̶ ̶t̶h̶e̶ ̶m̶a̶i̶n̶ ̶s̶c̶r̶i̶p̶t̶:̶ ❌ <-Main script not implemented.. yet.
-2. Go to the script folder, and choose the script you would like to run.
+2. Run KASPAR.bat
+2. Choose which script you would like to run
 
 ## 🎓 Documentation
 
