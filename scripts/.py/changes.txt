@@ -1,1 +1,0 @@
-Fixed RestorePoint.exe not working after i built it into a .exe file. When RP.exe went to check for a .ps1 script, it did not work because Pyinstaller put it into some temporary folder to finish the building process.

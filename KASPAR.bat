@@ -2,7 +2,7 @@
 title KASPAR Launcher
 echo.
 echo  =========================================
-echo   KASPAR - Starting up...
+echo   KASPAR - Loading, please wait...
 echo  =========================================
 echo.
 
@@ -13,28 +13,31 @@ if %errorlevel% equ 0 (
     goto :install
 )
 
-:: ── Node.js not found - download and install ─────────────────────────────────
-echo  [..] Node.js not found. Downloading installer...
-echo       This may take a minute, please wait.
+:: ── Node.js not found  ────────────────────────────────
+echo  [..] Node.js not found. Running installer, please wait...
+echo       Follow the installation steps, then come back here.
+echo 	   Installing Chocolatey is not necessary.
 echo.
 
-curl -L "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi" -o "%TEMP%\node_installer.msi"
+set INSTALLER=%~dp0files\node.msi
 
-if %errorlevel% neq 0 (
-    echo.
-    echo  [!!] Download failed. Check your internet connection and try again.
+if not exist "%INSTALLER%" (
+    echo  [!!] Installer not found at: installer\node-v20.11.1-x64.msi
+    echo       Please download Node.js from https://nodejs.org and install it manually.
     pause
     exit /b 1
 )
 
-echo  [..] Installing Node.js silently...
-msiexec /i "%TEMP%\node_installer.msi" /qn /norestart
+msiexec /i "%INSTALLER%" /norestart
+if %errorlevel% neq 0 (
+    echo.
+    echo  [!!] Installation failed or was cancelled.
+    pause
+    exit /b 1
+)
 
 :: Refresh PATH so node is available in this session
-for /f "tokens=*" %%i in ('where node 2^>nul') do set NODE_PATH=%%i
-if not defined NODE_PATH (
-    set "PATH=%PATH%;C:\Program Files\nodejs"
-)
+set "PATH=%PATH%;C:\Program Files\nodejs"
 
 echo  [OK] Node.js installed successfully.
 echo.
