@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const { execFile } = require('child_process');
 const path = require('path');
 
@@ -48,6 +48,11 @@ function openDocsWindow(url) {
   docsWin.loadURL(url);
   docsWin.maximize();
 }
+
+// ─── Open a URL in the system default browser ────────────────────────────────
+ipcMain.on('open-external', (_, url) => {
+  shell.openExternal(url);
+});
 
 // ─── Run a script from ./scripts/ ────────────────────────────────────────────
 ipcMain.handle('run-script', (_, exe) => {
