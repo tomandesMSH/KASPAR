@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KASPAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141416;
+    --surface2: #1c1c20;
+    --border: #2a2a30;
+    --accent: #04A2CC;
+    --accent2: #ff4d6d;
+    --text: #e8e8f0;
+    --muted: #5a5a6a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Titlebar ── */
+  .titlebar {
+    -webkit-app-region: drag;
+    height: 36px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 16px;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+  .titlebar-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    letter-spacing: 0.12em;
+  }
+  .titlebar-btn {
+    -webkit-app-region: no-drag;
+    width: 46px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+  .titlebar-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+  .titlebar-btn.close:hover { background: #c42b1c; color: #fff; }
+
+  /* ── Layout ── */
+  .app { display: flex; flex: 1; position: relative; z-index: 1; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px; background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .logo { padding: 20px 24px 18px; border-bottom: 1px solid var(--border); }
+  .logo-img { width: 100%; max-width: 160px; height: auto; display: block; }
+  .logo-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-top: 8px; text-transform: uppercase; }
+
+  .nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+    border: 1px solid transparent; user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent); background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.2); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .version { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+  /* ── Main ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Pages ── */
+  .page { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .page.active { display: flex; }
+
+  .topbar {
+    padding: 20px 32px 0;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .page-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+  .page-title span { color: var(--accent); }
+
+  /* ── Run button ── */
+  .run-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--accent); color: #000; border: none; border-radius: 8px;
+    padding: 12px 24px; font-family: var(--sans); font-size: 14px; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .run-btn::after { content: ''; position: absolute; inset: 0; background: white; opacity: 0; transition: opacity 0.15s; }
+  .run-btn:hover::after { opacity: 0.15; }
+  .run-btn:active { transform: scale(0.97); }
+  .run-btn:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+  .run-btn:disabled::after { display: none; }
+
+  .restore-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: var(--sans); font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .restore-btn:hover { border-color: #ffc800; color: #ffc800; background: rgba(255,200,0,0.06); }
+  .badge { background: rgba(0,0,0,0.25); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-weight: 700; }
+
+  /* ── Script grid ── */
+  .content {
+    flex: 1; overflow-y: auto; padding: 24px 32px 32px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+
+  .category-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 12px; margin-top: 28px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .category-label:first-child { margin-top: 4px; }
+  .category-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+
+  .script-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 20px 18px; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: flex-start; gap: 16px; position: relative; overflow: hidden;
+  }
+  .script-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--border); transition: background 0.15s;
+  }
+  .script-card:hover { border-color: rgba(0,229,160,0.3); background: var(--surface2); }
+  .script-card.selected { border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.05); }
+  .script-card.selected::before { background: var(--accent); }
+
+  .script-check {
+    width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px; transition: all 0.15s; background: var(--surface2);
+  }
+  .script-card.selected .script-check { background: var(--accent); border-color: var(--accent); }
+  .check-icon { color: #000; font-size: 11px; font-weight: 700; opacity: 0; transition: opacity 0.1s; }
+  .script-card.selected .check-icon { opacity: 1; }
+
+  .script-info { flex: 1; min-width: 0; }
+  .script-name { font-size: 15px; font-weight: 700; color: var(--text); white-space: normal; line-height: 1.3; margin-bottom: 6px; }
+  .script-desc { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.6; }
+
+  .script-tag {
+    font-family: var(--mono); font-size: 9px; padding: 2px 6px;
+    border-radius: 3px; letter-spacing: 0.05em; flex-shrink: 0; margin-top: 2px;
+  }
+  .tag-safe     { background: rgba(0,229,160,0.12);  color: var(--accent); }
+  .tag-moderate { background: rgba(255,200,0,0.12);  color: #ffc800; }
+  .tag-advanced { background: rgba(255,77,109,0.12); color: var(--accent2); }
+
+  .about-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-family: var(--mono);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .about-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,160,0.05);
+  }
+
+  /* ── Status bar ── */
+  .statusbar {
+    height: 28px; border-top: 1px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; padding: 0 20px; gap: 20px;
+    font-family: var(--mono); font-size: 10px; color: var(--muted); flex-shrink: 0;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ── Controls bar ── */
+  .controls {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 32px; margin-bottom: 4px; flex-shrink: 0;
+  }
+  .ctrl-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 5px; padding: 5px 12px; font-family: var(--sans);
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .selection-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+  .selection-count span { color: var(--accent); font-weight: 700; }
+
+  /* ── Run overlay ── */
+  .run-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .run-overlay.active { display: flex; }
+  .run-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px; width: 460px; max-width: 90vw;
+  }
+  .run-modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+  .run-modal h2 span { color: var(--accent); }
+  .run-log {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px; font-family: var(--mono); font-size: 11px;
+    height: 180px; overflow-y: auto; line-height: 1.7;
+  }
+  .log-line { opacity: 0; animation: fadeIn 0.3s forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .log-ok   { color: var(--accent); }
+  .log-run  { color: #ffc800; }
+  .log-done { color: var(--text); }
+  .log-err  { color: var(--accent2); }
+  .progress-bar-wrap { background: var(--bg); border-radius: 4px; height: 4px; margin-top: 14px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.4s ease; box-shadow: 0 0 8px var(--accent); }
+  .close-run-btn {
+    display: none; margin-top: 16px; background: transparent;
+    border: 1px solid var(--border); color: var(--text); border-radius: 6px;
+    padding: 9px 20px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .close-run-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+</style>
+</head>
+<body>
+
+<!-- Title bar -->
+<div class="titlebar">
+  <div class="titlebar-title">KASPAR</div>
+  <div style="margin-left:auto; display:flex;">
+    <div class="titlebar-btn min"   onclick="window.electronAPI?.minimize()">&#x2013;</div>
+    <div class="titlebar-btn max"   onclick="window.electronAPI?.maximize()">&#x25A1;</div>
+    <div class="titlebar-btn close" onclick="window.electronAPI?.close()">&#x2715;</div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <img class="logo-img" src="./files/kasparlogo.png" alt="KASPAR" />
+      <div class="logo-sub">TAKE CONTROL.</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('scripts', this)"><span class="nav-icon"></span> Scripts</div>
+      <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/about.html')"><span class="nav-icon"></span> About KASPAR</div>
+      <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/index.html')"><span class="nav-icon"></span> Documentation</div>
+      <div class="nav-item" onclick="window.open('https://github.com/tomandesmsh/KASPAR')"><span class="nav-icon"></span> GitHub</div>
+      <div class="nav-item" onclick="window.open('https://tomandesmsh.github.io/KASPARDocs/bug.html')"><span class="nav-icon"></span> Report a bug</div>
+      <div class="nav-item" onclick="window.open('https://forms.gle/pxvZQtuw6dKZWEZv8')"><span class="nav-icon"></span> Suggestions</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="version">Tomáš Vaněk - Kaspar</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- SCRIPTS PAGE -->
+    <div class="page active" id="page-scripts">
+      <div class="topbar">
+        <div class="page-title">Select <span>Tweaks</span></div>
+        <div style="display:flex; gap:10px;">
+        <div style="display:flex; align-items:center; gap:0; position:relative;">
+          <img src="./files/recommended.png" style="height:36px; opacity:0.9; margin-right:-6px; pointer-events:none;" />
+          <button class="restore-btn" onclick="runRestorePoint()">🛡 Restore Point</button>
+        </div>
+          <button class="run-btn" id="runBtn" disabled onclick="runScripts()">
+            ▶ Run Tweaks <span class="badge" id="runCount">0</span>
+          </button>
+        </div>
+      </div>
+      <div class="controls" style="margin-top:16px;">
+        <button class="ctrl-btn" onclick="selectAll()">Select All</button>
+        <button class="ctrl-btn" onclick="selectNone()">Clear</button>
+        <div class="selection-count"><span id="countDisplay">0</span> selected</div>
+      </div>
+      <div class="content" id="scriptList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Run overlay -->
+<div class="run-overlay" id="runOverlay">
+  <div class="run-modal">
+    <h2>Running <span>Scripts</span>…</h2>
+    <div class="run-log" id="runLog"></div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <button class="close-run-btn" id="closeRunBtn" onclick="closeRun()">✓ Done – Close</button>
+  </div>
+</div>
+
+<script>
+// ─── SCRIPT DEFINITIONS ──────────────────────────────────────────────────────
+const categories = [
+  {
+    name: "Privacy & Ads",
+    scripts: [
+      { id: "disableadid",    name: "Disable Advertisement ID",  desc: "Stops Windows from using your ad targeting ID", tag: "safe",     exe: "DisableAdvertisementID.exe", docs: "disableadvertisementid" },
+      { id: "startads",       name: "Remove Start Menu Ads",     desc: "Remove sponsored app suggestions in Start menu",     tag: "safe",     exe: "StartAds.exe",               docs: "startads" },
+      { id: "disabledynsrch", name: "Disable Dynamic Search",    desc: "Disables News/Articles in Start and Search",        tag: "safe",     exe: "DisableDynamicSearch.exe",   docs: "disabledynamicsearch" },
+      { id: "localaccount",   name: "Local Account Setup",       desc: "Helps you create a local account",     tag: "moderate", exe: "LocalAccount.exe",           docs: "localaccount" },
+    ]
+  },
+  {
+    name: "UI & Shell Tweaks",
+    scripts: [
+      { id: "classicroclick", name: "Classic Right-Click Menu",  desc: "Restores the full context menu (Win10)",    tag: "safe",     exe: "ClassicRClickMenu.exe",      docs: "classicrclickmenu" },
+      { id: "detailedsd",     name: "Detailed Shutdown",  desc: "Shows you whats happening on shutdown",       tag: "safe",     exe: "DetailedShutdown.exe",       docs: "detailedshutdown" },
+      { id: "endtask",        name: "Enable End Task", desc: "Adds End Task option to taskbar",   tag: "safe",     exe: "EndTask.exe",                docs: "endtask" },
+      { id: "dropfileremove", name: "Remove Drop File prompt",   desc: "Disable drag-and-drop window",      tag: "safe",     exe: "DropFileRemove.exe",         docs: "dropfileremove" },
+    ]
+  },
+  {
+    name: "System & Performance",
+    scripts: [
+      { id: "powerplan",      name: "Power Plan Manager",      desc: "Switch to high-performance or battery saver anytime",       tag: "safe",     exe: "PowerPlan.exe",              docs: "powerplan" },
+      { id: "devsetupregion", name: "Device Setup Region",   desc: "Bypass region-locked Windows features",     tag: "moderate", exe: "DeviceSetupRegion.exe",      docs: "devicesetupregion" },
+      { id: "localsearch",    name: "Local Search Only",         desc: "Restrict Windows Search to local files only",  tag: "safe",     exe: "LocalSearch.exe",            docs: "localsearch" },
+    ]
+  }
+];
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showPage(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+}
+
+// ─── SCRIPTS PAGE ────────────────────────────────────────────────────────────
+const selected = new Set();
+
+function tagClass(t) {
+  return t === 'safe' ? 'tag-safe' : t === 'moderate' ? 'tag-moderate' : 'tag-advanced';
+}
+
+function render() {
+  const container = document.getElementById('scriptList');
+  container.innerHTML = '';
+  categories.forEach(cat => {
+    const label = document.createElement('div');
+    label.className = 'category-label';
+    label.textContent = cat.name;
+    container.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'script-grid';
+    cat.scripts.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'script-card' + (selected.has(s.id) ? ' selected' : '');
+      card.innerHTML = `
+        <div class="script-check"><span class="check-icon">✓</span></div>
+        <div class="script-info">
+          <div class="script-name">${s.name}</div>
+          <div class="script-desc">${s.desc}</div>
+          <a class="about-btn" href="https://tomandesmsh.github.io/KASPARDocs/scripts.html#${s.docs}"
+             target="_blank" onclick="event.stopPropagation()">↗ About</a>
+        </div>
+        <span class="script-tag ${tagClass(s.tag)}">${s.tag}</span>
+      `;
+      card.onclick = () => toggle(s.id);
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  });
+  updateCount();
+}
+
+function toggle(id) { selected.has(id) ? selected.delete(id) : selected.add(id); render(); }
+function selectAll()  { categories.forEach(c => c.scripts.forEach(s => selected.add(s.id))); render(); }
+function selectNone() { selected.clear(); render(); }
+
+function updateCount() {
+  const n = selected.size;
+  document.getElementById('countDisplay').textContent = n;
+  document.getElementById('runCount').textContent = n;
+  document.getElementById('runBtn').disabled = n === 0;
+}
+
+// ─── RUN SCRIPTS ─────────────────────────────────────────────────────────────
+async function runScripts() {
+  if (selected.size === 0) return;
+  const toRun = [];
+  categories.forEach(c => c.scripts.forEach(s => { if (selected.has(s.id)) toRun.push(s); }));
+
+  const overlay  = document.getElementById('runOverlay');
+  const log      = document.getElementById('runLog');
+  const bar      = document.getElementById('progressBar');
+  const closeBtn = document.getElementById('closeRunBtn');
+  const runBtn   = document.getElementById('runBtn');
+
+  log.innerHTML = '';
+  bar.style.width = '0%';
+  closeBtn.style.display = 'none';
+  overlay.classList.add('active');
+  runBtn.disabled = true;
+
+  let succeeded = 0, failed = 0;
+
+  for (let i = 0; i < toRun.length; i++) {
+    const s = toRun[i];
+    addLog(`▶ Running: ${s.name}…`, 'log-run');
+    try {
+      let result;
+      if (window.electronAPI) {
+        result = await window.electronAPI.runScript(s.exe);
+      } else {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        result = { success: true };
+      }
+      if (result.success) {
+        addLog(`  ✓ ${s.name} — completed`, 'log-ok');
+        succeeded++;
+      } else {
+        addLog(`  ✗ ${s.name} — failed: ${result.message}`, 'log-err');
+        failed++;
+      }
+    } catch (err) {
+      addLog(`  ✗ ${s.name} — error: ${err.message}`, 'log-err');
+      failed++;
+    }
+    bar.style.width = Math.round(((i + 1) / toRun.length) * 100) + '%';
+  }
+
+  const summary = failed === 0
+    ? `✓ All ${succeeded} script(s) completed successfully.`
+    : `⚠ Done: ${succeeded} succeeded, ${failed} failed.`;
+  addLog(summary, failed === 0 ? 'log-done' : 'log-err');
+  closeBtn.style.display = 'block';
+  document.getElementById('statusMsg').textContent = `Last run: ${succeeded}/${toRun.length} scripts OK`;
+  runBtn.disabled = selected.size === 0;
+}
+
+function addLog(text, cls) {
+  const log = document.getElementById('runLog');
+  const line = document.createElement('div');
+  line.className = `log-line ${cls}`;
+  line.textContent = text;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function closeRun() {
+  document.getElementById('runOverlay').classList.remove('active');
+}
+
+// ─── RESTORE POINT ───────────────────────────────────────────────────────────
+async function runRestorePoint() {
+  const overlay  = document.getElementById('runOverlay');
+  const log      = document.getElementById('runLog');
+  const bar      = document.getElementById('progressBar');
+  const closeBtn = document.getElementById('closeRunBtn');
+
+  log.innerHTML = '';
+  bar.style.width = '0%';
+  closeBtn.style.display = 'none';
+  overlay.classList.add('active');
+
+  addLog('▶ Creating restore point…', 'log-run');
+
+  try {
+    let result;
+    if (window.electronAPI) {
+      result = await window.electronAPI.runScript('RestorePoint.exe');
+    } else {
+      await new Promise(r => setTimeout(r, 1200));
+      result = { success: true };
+    }
+    if (result.success) {
+      addLog('  ✓ Restore point created successfully.', 'log-ok');
+    } else {
+      addLog(`  ✗ Failed: ${result.message}`, 'log-err');
+    }
+  } catch (err) {
+    addLog(`  ✗ Error: ${err.message}`, 'log-err');
+  }
+
+  bar.style.width = '100%';
+  closeBtn.style.display = 'block';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
