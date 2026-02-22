@@ -276,6 +276,19 @@
   }
   .close-run-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* ── Revert button ── */
+  .revert-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: transparent; color: var(--accent2);
+    border: 1px solid var(--accent2); border-radius: 8px;
+    padding: 12px 24px; font-family: var(--sans); font-size: 14px; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .revert-btn:hover { background: rgba(255,77,109,0.08); border-color: #ff6b85; color: #ff6b85; }
+  .revert-btn:active { transform: scale(0.97); }
+  .revert-btn:disabled { background: var(--surface2); color: var(--muted); border-color: var(--border); cursor: not-allowed; }
+
 </style>
 </head>
 <body>
@@ -322,6 +335,9 @@
           <img src="./files/recommended.png" style="height:36px; opacity:0.9; margin-right:-6px; pointer-events:none;" />
           <button class="restore-btn" onclick="runRestorePoint()">🛡 Restore Point</button>
         </div>
+          <button class="revert-btn" id="revertBtn" disabled onclick="revertScripts()">
+            ↩ Revert <span class="badge" id="revertCount">0</span>
+          </button>
           <button class="run-btn" id="runBtn" disabled onclick="runScripts()">
             ▶ Run Tweaks <span class="badge" id="runCount">0</span>
           </button>
@@ -341,7 +357,7 @@
 <!-- Run overlay -->
 <div class="run-overlay" id="runOverlay">
   <div class="run-modal">
-    <h2>Running <span>Scripts</span>…</h2>
+    <h2 id="overlayTitle">Running <span>Scripts</span>…</h2>
     <div class="run-log" id="runLog"></div>
     <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
     <button class="close-run-btn" id="closeRunBtn" onclick="closeRun()">✓ Done – Close</button>
@@ -354,27 +370,28 @@ const categories = [
   {
     name: "Privacy & Ads",
     scripts: [
-      { id: "disableadid",    name: "Disable Advertisement ID",  desc: "Stops Windows from using your ad targeting ID", tag: "safe",     exe: "DisableAdvertisementID.exe", docs: "disableadvertisementid" },
-      { id: "startads",       name: "Remove Start Menu Ads",     desc: "Remove sponsored app suggestions in Start menu",     tag: "safe",     exe: "StartAds.exe",               docs: "startads" },
-      { id: "disabledynsrch", name: "Disable Dynamic Search",    desc: "Disables News/Articles in Start and Search",        tag: "safe",     exe: "DisableDynamicSearch.exe",   docs: "disabledynamicsearch" },
-      { id: "localaccount",   name: "Local Account Setup",       desc: "Helps you create a local account",     tag: "moderate", exe: "LocalAccount.exe",           docs: "localaccount" },
+      { id: "disableadid",    name: "Disable Advertisement ID",  desc: "Stops Windows from using your ad targeting ID", tag: "safe",     exe: "apply/DisableAdvertisementID_Apply.exe",  revertExe: "revert/DisableAdvertisementID_Revert.exe",  docs: "disableadvertisementid" },
+      { id: "startads",       name: "Remove Start Menu Ads",     desc: "Remove sponsored app suggestions in Start menu",     tag: "safe",     exe: "apply/StartAds_Apply.exe",               revertExe: "revert/StartAds_Revert.exe",               docs: "startads" },
+      { id: "disabledynsrch", name: "Disable Dynamic Search",    desc: "Disables News/Articles in Start and Search",        tag: "safe",     exe: "apply/DisableDynamicSearch_Apply.exe",   revertExe: "revert/DisableDynamicSearch_Revert.exe",   docs: "disabledynamicsearch" },
+      { id: "localaccount",   name: "Local Account Setup",       desc: "Helps you create a local account",     tag: "moderate", exe: "LocalAccount.exe",                 revertExe: null, interactive: true,              docs: "localaccount" },
     ]
   },
   {
     name: "UI & Shell Tweaks",
     scripts: [
-      { id: "classicroclick", name: "Classic Right-Click Menu",  desc: "Restores the full context menu (Win10)",    tag: "safe",     exe: "ClassicRClickMenu.exe",      docs: "classicrclickmenu" },
-      { id: "detailedsd",     name: "Detailed Shutdown",  desc: "Shows you whats happening on shutdown",       tag: "safe",     exe: "DetailedShutdown.exe",       docs: "detailedshutdown" },
-      { id: "endtask",        name: "Enable End Task", desc: "Adds End Task option to taskbar",   tag: "safe",     exe: "EndTask.exe",                docs: "endtask" },
-      { id: "dropfileremove", name: "Remove Drop File prompt",   desc: "Disable drag-and-drop window",      tag: "safe",     exe: "DropFileRemove.exe",         docs: "dropfileremove" },
+      { id: "classicroclick", name: "Classic Right-Click Menu",  desc: "Restores the full context menu (Win10)",    tag: "safe",     exe: "apply/ClassicRClickMenu_Apply.exe",      revertExe: "revert/ClassicRClickMenu_Revert.exe",      docs: "classicrclickmenu" },
+      { id: "detailedsd",     name: "Detailed Shutdown",         desc: "Shows you whats happening on shutdown",     tag: "safe",     exe: "apply/DetailedShutdown_Apply.exe",       revertExe: "revert/DetailedShutdown_Revert.exe",       docs: "detailedshutdown" },
+      { id: "endtask",        name: "Enable End Task",           desc: "Adds End Task option to taskbar",           tag: "safe",     exe: "apply/EndTask_Apply.exe",                revertExe: "revert/EndTask_Revert.exe",                docs: "endtask" },
+      { id: "dropfileremove", name: "Remove Drop File prompt",   desc: "Disable drag-and-drop window",             tag: "safe",     exe: "apply/DropFileRemove_Apply.exe",         revertExe: "revert/DropFileRemove_Revert.exe",         docs: "dropfileremove" },
     ]
   },
   {
     name: "System & Performance",
     scripts: [
-      { id: "powerplan",      name: "Power Plan Manager",      desc: "Switch to high-performance or battery saver anytime",       tag: "safe",     exe: "PowerPlan.exe",              docs: "powerplan" },
-      { id: "devsetupregion", name: "Device Setup Region",   desc: "Bypass region-locked Windows features",     tag: "moderate", exe: "DeviceSetupRegion.exe",      docs: "devicesetupregion" },
-      { id: "localsearch",    name: "Local Search Only",         desc: "Restrict Windows Search to local files only",  tag: "safe",     exe: "LocalSearch.exe",            docs: "localsearch" },
+      { id: "powerplan",      name: "Power Plan Manager",        desc: "Switch to high-performance or battery saver anytime", tag: "safe",     exe: "PowerPlan.exe",                  revertExe: null, interactive: true,              docs: "powerplan" },
+      { id: "devsetupregion", name: "Device Setup Region",       desc: "Bypass region-locked Windows features",     tag: "moderate", exe: "DeviceSetupRegion.exe",            revertExe: null, interactive: true,              docs: "devicesetupregion" },
+      { id: "localsearch",    name: "Local Search Only",         desc: "Restrict Windows Search to local files only", tag: "safe",   exe: "apply/LocalSearch_Apply.exe",            revertExe: "revert/LocalSearch_Revert.exe",            docs: "localsearch" },
+      { id: "shutdownnoupdate", name: "Shutdown & Don't Update",   desc: "Control whether Windows forces updates on shutdown", tag: "moderate", exe: "ShutdownAndDontUpdate.exe", revertExe: null, interactive: true, docs: "shutdownanddontupdate" },
     ]
   }
 ];
@@ -433,7 +450,16 @@ function updateCount() {
   const n = selected.size;
   document.getElementById('countDisplay').textContent = n;
   document.getElementById('runCount').textContent = n;
+  document.getElementById('revertCount').textContent = n;
   document.getElementById('runBtn').disabled = n === 0;
+  // Only enable revert if all selected scripts have a revertExe
+  const allSelected = [];
+  categories.forEach(c => c.scripts.forEach(s => { if (selected.has(s.id)) allSelected.push(s); }));
+  const canRevert = n > 0 && allSelected.every(s => s.revertExe);
+  document.getElementById('revertBtn').disabled = !canRevert;
+  document.getElementById('revertBtn').title = !canRevert && n > 0
+    ? 'One or more selected tweaks cannot be reverted'
+    : '';
 }
 
 // ─── RUN SCRIPTS ─────────────────────────────────────────────────────────────
@@ -441,6 +467,17 @@ async function runScripts() {
   if (selected.size === 0) return;
   const toRun = [];
   categories.forEach(c => c.scripts.forEach(s => { if (selected.has(s.id)) toRun.push(s); }));
+
+  // Fire interactive scripts immediately with no overlay — they handle their own UI
+  const interactive = toRun.filter(s => s.interactive);
+  const silent      = toRun.filter(s => !s.interactive);
+
+  interactive.forEach(s => {
+    if (window.electronAPI) window.electronAPI.runInteractive(s.exe);
+  });
+
+  // If there are no silent scripts, nothing more to do
+  if (silent.length === 0) return;
 
   const overlay  = document.getElementById('runOverlay');
   const log      = document.getElementById('runLog');
@@ -456,8 +493,8 @@ async function runScripts() {
 
   let succeeded = 0, failed = 0;
 
-  for (let i = 0; i < toRun.length; i++) {
-    const s = toRun[i];
+  for (let i = 0; i < silent.length; i++) {
+    const s = silent[i];
     addLog(`▶ Running: ${s.name}…`, 'log-run');
     try {
       let result;
@@ -478,7 +515,7 @@ async function runScripts() {
       addLog(`  ✗ ${s.name} — error: ${err.message}`, 'log-err');
       failed++;
     }
-    bar.style.width = Math.round(((i + 1) / toRun.length) * 100) + '%';
+    bar.style.width = Math.round(((i + 1) / silent.length) * 100) + '%';
   }
 
   const summary = failed === 0
@@ -486,7 +523,7 @@ async function runScripts() {
     : `⚠ Done: ${succeeded} succeeded, ${failed} failed.`;
   addLog(summary, failed === 0 ? 'log-done' : 'log-err');
   closeBtn.style.display = 'block';
-  document.getElementById('statusMsg').textContent = `Last run: ${succeeded}/${toRun.length} scripts OK`;
+  document.getElementById('statusMsg').textContent = `Last run: ${succeeded}/${silent.length} scripts OK`;
   runBtn.disabled = selected.size === 0;
 }
 
@@ -501,6 +538,68 @@ function addLog(text, cls) {
 
 function closeRun() {
   document.getElementById('runOverlay').classList.remove('active');
+  document.getElementById('overlayTitle').innerHTML = 'Running <span>Scripts</span>…';
+}
+
+// ─── REVERT SCRIPTS ──────────────────────────────────────────────────────────
+async function revertScripts() {
+  if (selected.size === 0) return;
+  const toRun = [];
+  categories.forEach(c => c.scripts.forEach(s => { if (selected.has(s.id) && s.revertExe) toRun.push(s); }));
+  if (toRun.length === 0) return;
+
+  const overlay  = document.getElementById('runOverlay');
+  const log      = document.getElementById('runLog');
+  const bar      = document.getElementById('progressBar');
+  const closeBtn = document.getElementById('closeRunBtn');
+  const revertBtn = document.getElementById('revertBtn');
+  const runBtn   = document.getElementById('runBtn');
+
+  log.innerHTML = '';
+  bar.style.width = '0%';
+  closeBtn.style.display = 'none';
+  overlay.classList.add('active');
+  document.getElementById('overlayTitle').innerHTML = 'Reverting <span>Tweaks</span>…';
+  revertBtn.disabled = true;
+  runBtn.disabled = true;
+
+  let succeeded = 0, failed = 0;
+
+  for (let i = 0; i < toRun.length; i++) {
+    const s = toRun[i];
+    addLog(`↩ Reverting: ${s.name}…`, 'log-run');
+    try {
+      let result;
+      if (window.electronAPI) {
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timed out, tweak was probably applied/reverted but did not confirm it, this is a common issue and is being worked on. ')), 10000)
+        );
+        result = await Promise.race([window.electronAPI.runScript(s.revertExe), timeout]);
+      } else {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        result = { success: true };
+      }
+      if (result.success) {
+        addLog(`  ✓ ${s.name} — reverted`, 'log-ok');
+        succeeded++;
+      } else {
+        addLog(`  ✗ ${s.name} — failed: ${result.message}`, 'log-err');
+        failed++;
+      }
+    } catch (err) {
+      addLog(`  ✗ ${s.name} — error: ${err.message}`, 'log-err');
+      failed++;
+    }
+    bar.style.width = Math.round(((i + 1) / toRun.length) * 100) + '%';
+  }
+
+  const summary = failed === 0
+    ? `✓ All ${succeeded} tweak(s) reverted successfully.`
+    : `⚠ Done: ${succeeded} reverted, ${failed} failed.`;
+  addLog(summary, failed === 0 ? 'log-done' : 'log-err');
+  closeBtn.style.display = 'block';
+  document.getElementById('statusMsg').textContent = `Last revert: ${succeeded}/${toRun.length} scripts OK`;
+  updateCount();
 }
 
 // ─── RESTORE POINT ───────────────────────────────────────────────────────────
@@ -520,7 +619,7 @@ async function runRestorePoint() {
   try {
     let result;
     if (window.electronAPI) {
-      result = await window.electronAPI.runScript('RestorePoint.exe');
+      result = await window.electronAPI.runScript('apply/RestorePoint_Apply.exe');
     } else {
       await new Promise(r => setTimeout(r, 1200));
       result = { success: true };

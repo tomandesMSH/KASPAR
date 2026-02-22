@@ -4,12 +4,8 @@ import pandas as pd
 import winreg
 import openpyxl
 import os
+import sys
 import webbrowser
-
-def cls():
-    os.system('cls' if os.name=='nt' else 'clear')
-
-cls()
 
 print("1 - Change device setup region")
 print("2 - See what each country restricts")
@@ -20,7 +16,9 @@ x = input("")
 
 if x == "1":
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Fix: use sys.executable when frozen so we find the xlsx next to the exe,
+    # not in PyInstaller's temp extraction folder
+    script_dir = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
     file = os.path.join(script_dir, "WindowsCountryListFixed.xlsx")
 
     data = pd.read_excel(file, header=None)
@@ -63,10 +61,10 @@ if x == "1":
                 winreg.DeleteValue(key2, "DeviceRegion")
                 winreg.CloseKey(key2)
 
-                print("Windows setup region changed sucesfully.")
+                print("Windows setup region changed successfully.")
 
             except PermissionError:
-                print("Current Region changed sucesfully. To change the Device setup region, run the file as admin.")
+                print("Current Region changed successfully. To change the Device setup region, run the file as admin.")
 
             except FileNotFoundError:
                 print("DeviceRegion value not found, weird...")
@@ -75,8 +73,8 @@ if x == "1":
             found = True
             break
 
-    if found == False:
-        print('Country not in list, chooose "Open country list" in the selection.')
+    if not found:
+        print('Country not in list, choose "Open country list" in the selection.')
 
 elif x == "2":
     os.startfile(r"C:\Windows\System32\IntegratedServicesRegionPolicySet.json")
@@ -84,7 +82,6 @@ elif x == "2":
 elif x == "3":
     webbrowser.open("https://tomandesmsh.github.io/KASPARDocs/scripts.html#devicesetupregion")
     print("Opening docs...")
-
 
 elif x == "4":
     print('''Afghanistan
