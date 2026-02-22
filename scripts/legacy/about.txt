@@ -1,0 +1,1 @@
+scripts remained the same. I just made different versions based on whether you want to apply/revert selected tweak, so you dont have to choose it in each and every script.

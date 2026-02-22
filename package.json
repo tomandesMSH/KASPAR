@@ -22,14 +22,17 @@
       {
         "from": "scripts/",
         "to": "scripts/",
-        "filter": ["**/*.exe"]
+        "filter": [
+          "**/*.exe"
+        ]
       }
     ],
     "files": [
       "main.js",
       "preload.js",
       "index.html",
-      "assets/**"
+      "assets/**",
+      "files/**"
     ]
   },
   "devDependencies": {

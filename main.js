@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { spawn } = require('child_process');
+const { execFile, spawn } = require('child_process');
 const path = require('path');
 
 function createWindow() {
@@ -30,6 +30,7 @@ function createWindow() {
   ipcMain.on('win-close',    () => win.close());
 }
 
+// ─── Open a URL in a maximized Electron window ───────────────────────────────
 function openDocsWindow(url) {
   const docsWin = new BrowserWindow({
     width: 1280,
@@ -46,52 +47,50 @@ function openDocsWindow(url) {
   docsWin.maximize();
 }
 
+// ─── Open a URL in the system default browser ────────────────────────────────
 ipcMain.on('open-external', (_, url) => {
   shell.openExternal(url);
 });
 
-// ─── Run a script from ./scripts/ ────────────────────────────────────────────
-// Problem: scripts self-elevate via ShellExecuteW runas + sys.exit(), so the
-// original process exits immediately and execFile resolves too early, causing
-// all scripts to launch at once.
-//
-// Fix: We use PowerShell's Start-Process with -Verb RunAs -Wait, which:
-//   1. Triggers UAC and launches the exe elevated
-//   2. Blocks (-Wait) until the elevated process fully closes
-//   3. Means the PowerShell process (which we DO track) only exits after
-//      the user has finished with the script window and closed it
-//
-// This guarantees true one-at-a-time sequential execution.
+// ─── Resolve the scripts root ────────────────────────────────────────────────
+function scriptsRoot() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'scripts')
+    : path.join(__dirname, 'scripts');
+}
+
+// ─── Run a silent script (apply/revert) ──────────────────────────────────────
+// Waits for the process to fully exit before resolving — enables sequential runs.
 ipcMain.handle('run-script', (_, exe) => {
   return new Promise((resolve) => {
-    const scriptPath = path.join(__dirname, 'scripts', exe);
-
-    const ps = spawn(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-WindowStyle', 'Hidden',
-        '-Command',
-        `Start-Process -FilePath "${scriptPath}" -Verb RunAs -Wait`,
-      ],
-      { windowsHide: true }
-    );
-
-    let stderr = '';
-    ps.stderr.on('data', (data) => { stderr += data.toString(); });
-
-    ps.on('close', (code) => {
-      if (code === 0) {
-        resolve({ success: true, message: 'Completed.' });
-      } else {
-        resolve({ success: false, message: stderr || `Exited with code ${code}` });
+    const scriptPath = path.join(scriptsRoot(), exe);
+    execFile(
+      scriptPath,
+      [],
+      { windowsHide: false, maxBuffer: 10 * 1024 * 1024 },
+      (error, stdout, stderr) => {
+        if (error && error.code !== 0) {
+          resolve({ success: false, message: stderr || error.message });
+        } else {
+          resolve({ success: true, message: stdout || 'Completed.' });
+        }
       }
-    });
-
-    ps.on('error', (err) => {
-      resolve({ success: false, message: err.message });
-    });
+    );
   });
+});
+
+// ─── Run an interactive script (opens its own console window) ────────────────
+// Uses cmd.exe /c so the exe gets a proper visible console.
+// Detached so Electron doesn't wait on it — the user closes it themselves.
+ipcMain.handle('run-interactive', (_, exe) => {
+  const scriptPath = path.join(scriptsRoot(), exe);
+  const child = spawn('cmd.exe', ['/c', scriptPath], {
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: false,
+  });
+  child.unref(); // Let it live independently of Electron
+  return { success: true };
 });
 
 app.whenReady().then(createWindow);
