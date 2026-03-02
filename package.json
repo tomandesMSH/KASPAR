@@ -21,16 +21,14 @@
     "extraResources": [
       {
         "from": "scripts/",
-        "to": "scripts/",
-        "filter": [
-          "**/*.exe"
-        ]
+        "to": "scripts/"
       }
     ],
     "files": [
       "main.js",
       "preload.js",
       "index.html",
+      "splash.html",
       "assets/**",
       "files/**"
     ]

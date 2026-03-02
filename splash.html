@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KASPAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141416;
+    --surface2: #1c1c20;
+    --border: #2a2a30;
+    --accent: #04A2CC;
+    --accent2: #ff4d6d;
+    --text: #e8e8f0;
+    --muted: #5a5a6a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    overflow: hidden;
+    user-select: none;
+    -webkit-app-region: drag;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(4,162,204,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(4,162,204,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  /* Glow orb behind logo */
+  .glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(4,162,204,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  /* Logo area */
+  .logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .logo-wordmark {
+    font-family: var(--mono);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .logo-wordmark span {
+    color: var(--accent);
+  }
+
+  .logo-tagline {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Status area */
+  .status-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 320px;
+  }
+
+  /* Progress bar track */
+  .progress-track {
+    width: 100%;
+    height: 2px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 8px rgba(4,162,204,0.6);
+  }
+
+  /* Indeterminate shimmer when progress is unknown */
+  .progress-fill.indeterminate {
+    width: 40% !important;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%   { transform: translateX(-200%); }
+    100% { transform: translateX(400%); }
+  }
+
+  .status-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-align: center;
+    min-height: 16px;
+    transition: color 0.2s;
+  }
+
+  .status-text.error {
+    color: var(--accent2);
+  }
+
+  .status-text.ok {
+    color: var(--accent);
+  }
+
+  /* Step indicators */
+  .steps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .step {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--surface2);
+    transition: all 0.3s;
+  }
+
+  .step.active {
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(4,162,204,0.8);
+  }
+
+  .step.done {
+    background: rgba(4,162,204,0.4);
+  }
+
+  /* Version badge */
+  .version {
+    position: absolute;
+    bottom: 20px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+  }
+
+  /* Fade in animation for the whole container */
+  .container {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="glow"></div>
+
+  <div class="logo-area">
+    <div class="logo-wordmark">K<span>A</span>SPAR</div>
+    <div class="logo-tagline">Take Control</div>
+  </div>
+
+  <div class="status-area">
+    <div class="steps">
+      <div class="step active" id="step0"></div>
+      <div class="step" id="step1"></div>
+      <div class="step" id="step2"></div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill indeterminate" id="progressFill"></div>
+    </div>
+
+    <div class="status-text" id="statusText">Initializing...</div>
+  </div>
+
+  <div class="version" id="versionBadge">v1.0.0</div>
+</div>
+
+<script>
+  // Called from main.js via executeJavaScript
+  window.setStatus = function(text, type = '') {
+    const el = document.getElementById('statusText');
+    el.textContent = text;
+    el.className = 'status-text' + (type ? ' ' + type : '');
+  };
+
+  window.setProgress = function(pct) {
+    const fill = document.getElementById('progressFill');
+    if (pct < 0) {
+      fill.classList.add('indeterminate');
+    } else {
+      fill.classList.remove('indeterminate');
+      fill.style.width = pct + '%';
+    }
+  };
+
+  window.setStep = function(index) {
+    for (let i = 0; i < 3; i++) {
+      const s = document.getElementById('step' + i);
+      if (i < index)  { s.className = 'step done'; }
+      else if (i === index) { s.className = 'step active'; }
+      else            { s.className = 'step'; }
+    }
+  };
+
+  window.setVersion = function(v) {
+    document.getElementById('versionBadge').textContent = v;
+  };
+</script>
+</body>
+</html>
