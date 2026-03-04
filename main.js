@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const { execFile, spawn } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
-
+const { autoUpdater } = require('electron-updater');
 const SPLASH_MIN_MS = 1500; // minimum time splash is visible
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ function createMainWindow() {
 app.whenReady().then(() => {
   // 1. Show splash immediately
   createSplash();
-
+autoUpdater.checkForUpdatesAndNotify();
   // 2. Start loading the main window in the background straight away
   createMainWindow();
 
