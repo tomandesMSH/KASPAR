@@ -17,10 +17,12 @@ It allows advanced users to tweak Windows behavior safely, like modifying regist
 - Python 3.x
 
 ## ❓How to use
-
-1. Clone or download the repository.
-2. Run KASPAR.bat
-2. Choose which script you would like to run
+### For users
+1. Go to the Releases page
+2. Download the latest version (Kaspar-Setup.exe)
+### For developers
+1. Clone the repository
+2. Use KASPAR.bat
 
 ## 🎓 Documentation
 
