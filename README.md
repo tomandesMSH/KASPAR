@@ -18,7 +18,7 @@ It allows advanced users to tweak Windows behavior safely, like modifying regist
 
 ## ❓How to use
 ### For users
-1. Go to the Releases page
+1. Go to the [Releases](https://github.com/tomandesMSH/KASPAR/releases/) page
 2. Download the latest version (Kaspar-Setup.exe)
 ### For developers
 1. Clone the repository
