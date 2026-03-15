@@ -383,7 +383,6 @@ const categories = [
       { id: "detailedsd",     name: "Detailed Shutdown",         desc: "Shows you whats happening on shutdown",     tag: "safe",     exe: "apply/DetailedShutdown_Apply.exe",       revertExe: "revert/DetailedShutdown_Revert.exe",       docs: "detailedshutdown" },
       { id: "endtask",        name: "Enable End Task",           desc: "Adds End Task option to taskbar",           tag: "safe",     exe: "apply/EndTask_Apply.exe",                revertExe: "revert/EndTask_Revert.exe",                docs: "endtask" },
       { id: "dropfileremove", name: "Remove Drop File prompt",   desc: "Disable drag-and-drop window",             tag: "safe",     exe: "apply/DropFileRemove_Apply.exe",         revertExe: "revert/DropFileRemove_Revert.exe",         docs: "dropfileremove" },
-      { id: "askcopilotdisable", name: "Remove ask Copilot",   desc: 'Removes the "Ask Copilot" option from the context menu.',             tag: "safe",     exe: "apply/AskCopilotDisable_Apply.exe",         revertExe: "revert/AskCopilotDisable_Revert.exe",         docs: "askcopilotdisable" },
     ]
   },
   {
@@ -393,6 +392,7 @@ const categories = [
       { id: "devsetupregion", name: "Device Setup Region",       desc: "Bypass region-locked Windows features",     tag: "moderate", exe: "DeviceSetupRegion.exe",            revertExe: null, interactive: true,              docs: "devicesetupregion" },
       { id: "localsearch",    name: "Local Search Only",         desc: "Restrict Windows Search to local files only", tag: "safe",   exe: "apply/LocalSearch_Apply.exe",            revertExe: "revert/LocalSearch_Revert.exe",            docs: "localsearch" },
       { id: "shutdownnoupdate", name: "Shutdown & Don't Update",   desc: "Control whether Windows forces updates on shutdown", tag: "moderate", exe: "ShutdownAndDontUpdate.exe", revertExe: null, interactive: true, docs: "shutdownanddontupdate" },
+          { id: "askcopilotdisable", name: "Remove ask Copilot",   desc: 'Removes the "Ask Copilot" option from the context menu.',             tag: "safe",     exe: "apply/AskCopilotDisable_Apply.exe",         revertExe: "revert/AskCopilotDisable_Revert.exe",}   
     ]
   }
 ];
