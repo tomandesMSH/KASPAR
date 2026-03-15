@@ -1,8 +1,42 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const { execFile, spawn } = require('child_process');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 const path = require('path');
 const fs   = require('fs');
-const { autoUpdater } = require('electron-updater');
+
+// ─── Auto-updater logging ─────────────────────────────────────────────────────
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = false;
+
+// ─── Auto-updater events ──────────────────────────────────────────────────────
+autoUpdater.on('update-available', (info) => {
+  dialog.showMessageBox(mainWin, {
+    type: 'info',
+    title: 'Update Available',
+    message: `KASPAR v${info.version} is available.`,
+    detail: 'A new version was detected. Do you want to download and install it now?',
+    buttons: ['Download and Install', 'Later'],
+    defaultId: 0,
+  }).then(({ response }) => {
+    if (response === 0) autoUpdater.downloadUpdate();
+  });
+});
+
+autoUpdater.on('update-downloaded', () => {
+  dialog.showMessageBox(mainWin, {
+    type: 'info',
+    title: 'Update Ready',
+    message: 'Update downloaded.',
+    detail: 'KASPAR will restart and install the update now.',
+    buttons: ['Restart Now'],
+    defaultId: 0,
+  }).then(() => {
+    autoUpdater.quitAndInstall();
+  });
+});
+
 const SPLASH_MIN_MS = 1500; // minimum time splash is visible
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
@@ -78,7 +112,7 @@ function createMainWindow() {
 app.whenReady().then(() => {
   // 1. Show splash immediately
   createSplash();
-autoUpdater.checkForUpdatesAndNotify();
+
   // 2. Start loading the main window in the background straight away
   createMainWindow();
 
@@ -101,6 +135,11 @@ autoUpdater.checkForUpdatesAndNotify();
     await sleep(400);
 
     setSplashStep(2);
+    setSplashStatus('Checking for updates...');
+    setSplashProgress(75);
+    await sleep(600);
+
+    setSplashStep(3);
     setSplashStatus('Ready!', 'ok');
     setSplashProgress(100);
 
@@ -128,6 +167,9 @@ autoUpdater.checkForUpdatesAndNotify();
       splashWin.close();
       splashWin = null;
     }
+
+    // Check for updates after app is visible
+    autoUpdater.checkForUpdatesAndNotify();
   });
 });
 

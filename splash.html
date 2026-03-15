@@ -219,6 +219,7 @@
       <div class="step active" id="step0"></div>
       <div class="step" id="step1"></div>
       <div class="step" id="step2"></div>
+      <div class="step" id="step3"></div>
     </div>
 
     <div class="progress-track">
@@ -250,11 +251,11 @@
   };
 
   window.setStep = function(index) {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const s = document.getElementById('step' + i);
-      if (i < index)  { s.className = 'step done'; }
+      if (i < index)        { s.className = 'step done'; }
       else if (i === index) { s.className = 'step active'; }
-      else            { s.className = 'step'; }
+      else                  { s.className = 'step'; }
     }
   };
 
