@@ -1,6 +1,6 @@
 import winreg
 import sys
-import time
+
 path = r"Software\Microsoft\Windows\CurrentVersion\SearchSettings"
 value_name = "IsDynamicSearchBoxEnabled"
 
@@ -14,5 +14,5 @@ try:
     winreg.CloseKey(reg_key)
 
 except Exception as e:
+    print("ERROR:", e)
     sys.exit(1)
-time.sleep(1)

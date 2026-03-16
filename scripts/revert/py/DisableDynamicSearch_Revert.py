@@ -14,4 +14,5 @@ try:
     winreg.CloseKey(reg_key)
 
 except Exception as e:
+    print("ERROR:", e)
     sys.exit(1)

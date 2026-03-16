@@ -3,7 +3,7 @@ import ctypes
 import sys
 
 if not ctypes.windll.shell32.IsUserAnAdmin():
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
     sys.exit()
 
 path = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
@@ -13,9 +13,8 @@ try:
     try:
         winreg.DeleteValue(key, "VerboseStatus")
     except FileNotFoundError:
-        pass  # Already default, that's fine
+        pass
     winreg.CloseKey(key)
-except PermissionError:
-    sys.exit(1)
 except Exception as e:
+    print("ERROR:", e)
     sys.exit(1)

@@ -1,9 +1,38 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
-const { execFile, spawn } = require('child_process');
+const { execFile, spawn, spawnSync } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const path = require('path');
 const fs   = require('fs');
+
+// ─── Admin check & relaunch ───────────────────────────────────────────────────
+function isAdmin() {
+  try {
+    const result = spawnSync('net', ['session'], { windowsHide: true });
+    return result.status === 0;
+  } catch {
+    return false;
+  }
+}
+
+function relaunchAsAdmin() {
+  const exe  = process.execPath;
+  const args = app.isPackaged ? [] : [app.getAppPath()];
+  try {
+    spawnSync('powershell.exe', [
+      '-NoProfile', '-NonInteractive', '-Command',
+      `Start-Process -FilePath ${JSON.stringify(exe)}` +
+      (args.length ? ` -ArgumentList ${JSON.stringify(args.join(' '))}` : '') +
+      ' -Verb RunAs'
+    ], { windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// If we already tried elevation and user clicked No on UAC, this flag is set
+const USER_DECLINED_ADMIN = process.argv.includes('--no-admin');
 
 // ─── Auto-updater logging ─────────────────────────────────────────────────────
 autoUpdater.logger = log;
@@ -37,7 +66,7 @@ autoUpdater.on('update-downloaded', () => {
   });
 });
 
-const SPLASH_MIN_MS = 1500; // minimum time splash is visible
+const SPLASH_MIN_MS = 1500;
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 function scriptsRoot() {
@@ -62,7 +91,6 @@ function createSplash() {
       nodeIntegration: false,
     },
   });
-
   splashWin.loadFile('splash.html');
 }
 
@@ -86,7 +114,7 @@ function createMainWindow() {
     minWidth: 760,
     minHeight: 520,
     frame: false,
-    show: false,           // hidden until splash is done
+    show: false,
     backgroundColor: '#0d0d0f',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -109,24 +137,38 @@ function createMainWindow() {
 }
 
 // ─── App entry point ──────────────────────────────────────────────────────────
-app.whenReady().then(() => {
-  // 1. Show splash immediately
+app.whenReady().then(async () => {
+
+  // ── Admin check ─────────────────────────────────────────────────────────────
+  if (!isAdmin()) {
+    if (!USER_DECLINED_ADMIN) {
+      // Try to relaunch elevated — this opens a UAC prompt
+      // We pass --no-admin so if it somehow falls back to non-admin we know
+      relaunchAsAdmin();
+      // Whether UAC was accepted or cancelled, quit this non-admin instance.
+      // If accepted: the new elevated instance takes over.
+      // If cancelled: nothing launched, so we relaunch ourselves with --no-admin
+      // to show the warning instead of looping.
+      app.quit();
+      return;
+    }
+    // USER_DECLINED_ADMIN = true: user cancelled UAC, continue without admin and show warning
+  }
+
+  // 1. Show splash
   createSplash();
 
-  // 2. Start loading the main window in the background straight away
+  // 2. Start loading main window
   createMainWindow();
 
   splashWin.webContents.once('did-finish-load', async () => {
-    // Show version
     splashCall(`window.setVersion(${JSON.stringify('v' + app.getVersion())})`);
 
-    // Record when the splash appeared so we can enforce the minimum duration
     const splashStart = Date.now();
 
-    // ── Animate through the steps ────────────────────────────────────────────
     setSplashStep(0);
     setSplashStatus('Loading KASPAR...');
-    setSplashProgress(-1); // indeterminate shimmer
+    setSplashProgress(-1);
     await sleep(400);
 
     setSplashStep(1);
@@ -143,12 +185,10 @@ app.whenReady().then(() => {
     setSplashStatus('Ready!', 'ok');
     setSplashProgress(100);
 
-    // ── Wait for main window AND minimum splash duration ─────────────────────
     const elapsed   = Date.now() - splashStart;
     const remaining = Math.max(0, SPLASH_MIN_MS - elapsed);
 
     await Promise.all([
-      // ensure main window has fully loaded
       new Promise(resolve => {
         if (mainWin.webContents.isLoading()) {
           mainWin.webContents.once('did-finish-load', resolve);
@@ -156,19 +196,21 @@ app.whenReady().then(() => {
           resolve();
         }
       }),
-      // enforce minimum splash display time
       sleep(remaining),
     ]);
 
-    // ── Transition: show main, close splash ───────────────────────────────────
     mainWin.show();
-    await sleep(150); // brief overlap so there's no black gap
+    await sleep(150);
     if (splashWin && !splashWin.isDestroyed()) {
       splashWin.close();
       splashWin = null;
     }
 
-    // Check for updates after app is visible
+    // If user declined UAC, notify the renderer so it can show the warning
+    if (USER_DECLINED_ADMIN || !isAdmin()) {
+      mainWin.webContents.send('admin-warning');
+    }
+
     autoUpdater.checkForUpdatesAndNotify();
   });
 });
@@ -185,7 +227,6 @@ function openDocsWindow(url) {
       nodeIntegration: false,
     },
   });
-
   docsWin.loadURL(url);
   docsWin.maximize();
 }
@@ -224,6 +265,37 @@ ipcMain.handle('run-interactive', (_, exe) => {
   });
   child.unref();
   return { success: true };
+});
+
+// ─── Run a script elevated (UAC prompt) ──────────────────────────────────────
+ipcMain.handle('run-elevated', (_, exe) => {
+  return new Promise((resolve) => {
+    const scriptPath = path.join(scriptsRoot(), exe);
+    const tmpOut = path.join(app.getPath('temp'), `kaspar_out_${Date.now()}.txt`);
+
+    const psCommand =
+      `$p = Start-Process -FilePath ${JSON.stringify(scriptPath)} -Verb RunAs -Wait -PassThru` +
+      ` -RedirectStandardOutput ${JSON.stringify(tmpOut)} -RedirectStandardError ${JSON.stringify(tmpOut)};` +
+      ` exit $p.ExitCode`;
+
+    const child = spawn('powershell.exe', [
+      '-NoProfile', '-NonInteractive', '-Command', psCommand
+    ], { windowsHide: true });
+
+    child.on('close', (code) => {
+      let output = '';
+      try { output = fs.readFileSync(tmpOut, 'utf8').trim(); } catch (_) {}
+      try { fs.unlinkSync(tmpOut); } catch (_) {}
+
+      if (code === 0) {
+        resolve({ success: true, message: output || 'Completed.' });
+      } else if (code === null) {
+        resolve({ success: false, message: 'Cancelled: UAC prompt was dismissed.' });
+      } else {
+        resolve({ success: false, message: output || `Exited with code ${code}` });
+      }
+    });
+  });
 });
 
 // ─── Cleanup ──────────────────────────────────────────────────────────────────
