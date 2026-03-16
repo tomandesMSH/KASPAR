@@ -303,6 +303,38 @@
   .admin-warning.visible { display: flex; }
   .admin-warning-icon { font-size: 14px; }
 
+
+  /* ── Update download overlay ── */
+  .update-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .update-overlay.active { display: flex; }
+  .update-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px; width: 420px; max-width: 90vw;
+  }
+  .update-modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .update-modal h2 span { color: var(--accent); }
+  .update-subtitle {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .update-progress-wrap {
+    background: var(--bg); border-radius: 4px; height: 4px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .update-progress-bar {
+    height: 100%; background: var(--accent); border-radius: 4px;
+    width: 0%; transition: width 0.3s ease;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .update-stats {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+  }
+
 </style>
 </head>
 <body>
@@ -380,6 +412,23 @@
 <div class="statusbar">
   <div class="status-dot"></div>
   <span id="statusMsg">KASPAR ready.</span>
+</div>
+
+
+<!-- Update download overlay -->
+<div class="update-overlay" id="updateOverlay">
+  <div class="update-modal">
+    <h2>Downloading <span>Update</span>…</h2>
+    <div class="update-subtitle" id="updateSubtitle">Preparing download…</div>
+    <div class="update-progress-wrap">
+      <div class="update-progress-bar" id="updateProgressBar"></div>
+    </div>
+    <div class="update-stats">
+      <span id="updatePercent">0%</span>
+      <span id="updateSpeed">— MB/s</span>
+      <span id="updateSize">— / —</span>
+    </div>
+  </div>
 </div>
 
 <!-- Run overlay -->
@@ -676,6 +725,30 @@ async function runRestorePoint() {
 if (window.electronAPI?.onAdminWarning) {
   window.electronAPI.onAdminWarning(() => {
     document.getElementById('adminWarning').classList.add('visible');
+  });
+}
+
+
+// ─── UPDATE DOWNLOAD PROGRESS ────────────────────────────────────────────────
+if (window.electronAPI?.onUpdateDownloadProgress) {
+  window.electronAPI.onUpdateDownloadProgress((info) => {
+    const overlay = document.getElementById('updateOverlay');
+    const bar     = document.getElementById('updateProgressBar');
+    const pct     = document.getElementById('updatePercent');
+    const speed   = document.getElementById('updateSpeed');
+    const size    = document.getElementById('updateSize');
+    const sub     = document.getElementById('updateSubtitle');
+
+    overlay.classList.add('active');
+    bar.style.width = info.percent + '%';
+    pct.textContent = info.percent + '%';
+    speed.textContent = (info.bytesPerSecond / 1024 / 1024).toFixed(1) + ' MB/s';
+
+    const mb = (b) => (b / 1024 / 1024).toFixed(1) + ' MB';
+    size.textContent = mb(info.transferred) + ' / ' + mb(info.total);
+    sub.textContent  = info.percent < 100 ? 'Downloading new version…' : 'Download complete. Preparing to install…';
+
+    if (info.percent >= 100) bar.style.boxShadow = '0 0 12px var(--accent)';
   });
 }
 
