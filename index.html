@@ -289,6 +289,20 @@
   .revert-btn:active { transform: scale(0.97); }
   .revert-btn:disabled { background: var(--surface2); color: var(--muted); border-color: var(--border); cursor: not-allowed; }
 
+
+  /* ── Admin warning banner ── */
+  .admin-warning {
+    display: none;
+    align-items: center; gap: 10px;
+    background: rgba(255,77,109,0.08);
+    border-bottom: 1px solid rgba(255,77,109,0.3);
+    padding: 8px 20px;
+    font-family: var(--mono); font-size: 11px; color: var(--accent2);
+    flex-shrink: 0; z-index: 5; position: relative;
+  }
+  .admin-warning.visible { display: flex; }
+  .admin-warning-icon { font-size: 14px; }
+
 </style>
 </head>
 <body>
@@ -301,6 +315,13 @@
     <div class="titlebar-btn max"   onclick="window.electronAPI?.maximize()">&#x25A1;</div>
     <div class="titlebar-btn close" onclick="window.electronAPI?.close()">&#x2715;</div>
   </div>
+</div>
+
+
+<!-- Admin warning banner -->
+<div class="admin-warning" id="adminWarning">
+  <span class="admin-warning-icon">⚠</span>
+  <span>KASPAR is not running as Administrator. Some scripts may not work correctly. Restart KASPAR as Administrator for full functionality.</span>
 </div>
 
 <div class="app">
@@ -352,6 +373,13 @@
     </div>
 
   </div>
+</div>
+
+
+<!-- Status bar -->
+<div class="statusbar">
+  <div class="status-dot"></div>
+  <span id="statusMsg">KASPAR ready.</span>
 </div>
 
 <!-- Run overlay -->
@@ -500,7 +528,9 @@ async function runScripts() {
     try {
       let result;
       if (window.electronAPI) {
-        result = await window.electronAPI.runScript(s.exe);
+        result = s.requiresAdmin
+          ? await window.electronAPI.runElevated(s.exe)
+          : await window.electronAPI.runScript(s.exe);
       } else {
         await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
         result = { success: true };
@@ -575,7 +605,10 @@ async function revertScripts() {
         const timeout = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timed out, tweak was probably applied/reverted but did not confirm it, this is a common issue and is being worked on. ')), 10000)
         );
-        result = await Promise.race([window.electronAPI.runScript(s.revertExe), timeout]);
+        result = await Promise.race([
+          s.requiresAdmin ? window.electronAPI.runElevated(s.revertExe) : window.electronAPI.runScript(s.revertExe),
+          timeout
+        ]);
       } else {
         await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
         result = { success: true };
@@ -636,6 +669,14 @@ async function runRestorePoint() {
 
   bar.style.width = '100%';
   closeBtn.style.display = 'block';
+}
+
+
+// ─── ADMIN WARNING ───────────────────────────────────────────────────────────
+if (window.electronAPI?.onAdminWarning) {
+  window.electronAPI.onAdminWarning(() => {
+    document.getElementById('adminWarning').classList.add('visible');
+  });
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

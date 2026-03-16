@@ -9,7 +9,7 @@ try:
         winreg.DeleteValue(key, "TaskbarEndTask")
         winreg.CloseKey(key)
     except FileNotFoundError:
-        pass  # Already default, that's fine
-
+        pass
 except Exception as e:
+    print("ERROR:", e)
     sys.exit(1)
