@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Listen for admin warning from main process
   onAdminWarning: (callback) => ipcRenderer.on('admin-warning', callback),
 
+  // Listen for update download progress
+  onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', (_, info) => callback(info)),
+
   // Window controls
   minimize: () => ipcRenderer.send('win-minimize'),
   maximize: () => ipcRenderer.send('win-maximize'),

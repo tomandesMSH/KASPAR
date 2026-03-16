@@ -66,6 +66,18 @@ autoUpdater.on('update-downloaded', () => {
   });
 });
 
+
+autoUpdater.on('download-progress', (info) => {
+  if (mainWin && !mainWin.isDestroyed()) {
+    mainWin.webContents.send('update-download-progress', {
+      percent:   Math.round(info.percent),
+      transferred: info.transferred,
+      total:     info.total,
+      bytesPerSecond: info.bytesPerSecond,
+    });
+  }
+});
+
 const SPLASH_MIN_MS = 1500;
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
