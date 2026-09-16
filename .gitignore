@@ -1,2 +1,5 @@
-node_modules/
 scripts/legacy
+src/KASPAR/bin/
+src/KASPAR/obj/
+src/KASPAR/publish/
+src/KASPAR/Releases/

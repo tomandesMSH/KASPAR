@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "KASPAR (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "KASPAR (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

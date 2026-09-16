@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="KASPAR.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KASPAR"
+    xmlns:models="using:KASPAR.Models"
+    xmlns:converters="using:KASPAR.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    RequestedTheme="Dark"
+    Background="#0D0D0F">
+
+    <Page.Resources>
+        <converters:SelectedBrushConverter x:Key="CardBorderBrushConverter" SelectedColor="#04A2CC" UnselectedColor="#2A2A30" />
+        <converters:SelectedBrushConverter x:Key="CardBackgroundBrushConverter" SelectedColor="#182A2E" UnselectedColor="#141416" />
+
+        <DataTemplate x:Key="ScriptCardTemplate" x:DataType="models:ScriptCardViewModel">
+            <Border Background="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource CardBackgroundBrushConverter}}"
+                    BorderBrush="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource CardBorderBrushConverter}}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="18" Margin="0,0,12,12" Tapped="ScriptCard_Tapped" Tag="{x:Bind}">
+                <Grid ColumnSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Top" />
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="15" Foreground="#E8E8F0" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind Description}" FontSize="11" Foreground="#5A5A6A" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border Grid.Column="2" Background="{x:Bind TagBrush}" Opacity="0.85" CornerRadius="3" Padding="6,2" VerticalAlignment="Top">
+                        <TextBlock Text="{x:Bind TagLabel}" FontSize="9" Foreground="Black" />
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="CategoryTemplate" x:DataType="models:CategoryViewModel">
+            <StackPanel Margin="0,0,0,8">
+                <TextBlock Text="{x:Bind Name}" FontSize="10" Foreground="#5A5A6A" Margin="0,20,0,12" CharacterSpacing="150" />
+                <ItemsControl ItemsSource="{x:Bind Scripts}" ItemTemplate="{StaticResource ScriptCardTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="0" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Grid Grid.Column="0" Background="#141416">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Padding="24,20,24,18" BorderBrush="#2A2A30" BorderThickness="0,0,0,1">
+                <Image Source="/Assets/kasparlogo.png" MaxWidth="160" HorizontalAlignment="Left" />
+                <TextBlock Text="TAKE CONTROL." FontSize="10" Foreground="#5A5A6A" Margin="0,8,0,0" CharacterSpacing="100" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Padding="12,16" Spacing="4">
+                <Button Content="Scripts" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="#1F3A40" Foreground="#04A2CC" BorderThickness="0" IsHitTestVisible="False" />
+                <Button Content="About KASPAR" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="Transparent" Foreground="#5A5A6A" BorderThickness="0" Click="AboutNav_Click" />
+                <Button Content="Documentation" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="Transparent" Foreground="#5A5A6A" BorderThickness="0" Click="DocsNav_Click" />
+                <Button Content="GitHub" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="Transparent" Foreground="#5A5A6A" BorderThickness="0" Click="GitHubNav_Click" />
+                <Button Content="Report a bug" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="Transparent" Foreground="#5A5A6A" BorderThickness="0" Click="BugNav_Click" />
+                <Button Content="Suggestions" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                        Background="Transparent" Foreground="#5A5A6A" BorderThickness="0" Click="SuggestionsNav_Click" />
+            </StackPanel>
+
+            <TextBlock Grid.Row="2" Text="Tomáš Vaněk - Kaspar" FontSize="10" Foreground="#5A5A6A" Padding="16" />
+        </Grid>
+
+        <!-- Main -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <InfoBar x:Name="AdminWarning" Grid.Row="0" Severity="Warning" IsOpen="False" IsClosable="False"
+                     Title="KASPAR is not running as Administrator."
+                     Message="Some scripts may not work correctly. Restart KASPAR as Administrator for full functionality." />
+
+            <Grid Grid.Row="1" Margin="32,20,32,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Select Tweaks" FontSize="28" FontWeight="Bold" Foreground="#E8E8F0" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button x:Name="RestoreButton" Content="Restore Point" Click="RestorePoint_Click" />
+                    <Button x:Name="RevertButton" Content="Revert (0)" IsEnabled="False" Click="Revert_Click" />
+                    <Button x:Name="RunButton" Content="Run Tweaks (0)" IsEnabled="False" Background="#04A2CC" Foreground="Black" Click="Run_Click" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="32,16,32,0" Spacing="12">
+                <Button Content="Select All" Click="SelectAll_Click" />
+                <Button Content="Clear" Click="SelectNone_Click" />
+                <TextBlock x:Name="SelectionCountText" Text="0 selected" Foreground="#5A5A6A" VerticalAlignment="Center" Margin="8,0,0,0" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="3" Margin="32,8,32,0">
+                <ItemsControl x:Name="CategoriesList" ItemTemplate="{StaticResource CategoryTemplate}" />
+            </ScrollViewer>
+
+            <Grid Grid.Row="4" Background="#141416" Height="28" Padding="20,0">
+                <TextBlock x:Name="StatusMessageText" Text="KASPAR ready." Foreground="#5A5A6A" FontSize="10" VerticalAlignment="Center" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>
