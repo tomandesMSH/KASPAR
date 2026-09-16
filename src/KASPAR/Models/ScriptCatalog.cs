@@ -159,6 +159,15 @@ public static class ScriptCatalog
                     Exe = "apply/AskCopilotDisable_Apply.exe",
                     RevertExe = "revert/AskCopilotDisable_Revert.exe",
                 },
+                new()
+                {
+                    Id = "micvolume",
+                    Name = "Max Microphone Volume",
+                    Description = "Sets your microphone volume to 100% and unmutes it",
+                    Tag = ScriptTag.Safe,
+                    Exe = "apply/micvolume_Apply.exe",
+                    RevertExe = "revert/micvolume_Revert.exe",
+                },
             },
         },
     };
