@@ -17,10 +17,11 @@
         <converters:SelectedBrushConverter x:Key="CardBackgroundBrushConverter" SelectedColor="#182A2E" UnselectedColor="#141416" />
 
         <DataTemplate x:Key="ScriptCardTemplate" x:DataType="models:ScriptCardViewModel">
-            <Border Background="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource CardBackgroundBrushConverter}}"
+            <Border Height="100"
+                    Background="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource CardBackgroundBrushConverter}}"
                     BorderBrush="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource CardBorderBrushConverter}}"
                     BorderThickness="1" CornerRadius="10"
-                    Padding="18" Margin="0,0,12,12" Tapped="ScriptCard_Tapped" Tag="{x:Bind}">
+                    Padding="18" Tapped="ScriptCard_Tapped" Tag="{x:Bind}">
                 <Grid ColumnSpacing="14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -29,8 +30,8 @@
                     </Grid.ColumnDefinitions>
                     <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Top" />
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="15" Foreground="#E8E8F0" TextWrapping="Wrap" />
-                        <TextBlock Text="{x:Bind Description}" FontSize="11" Foreground="#5A5A6A" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="15" Foreground="#E8E8F0" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{x:Bind Description}" FontSize="11" Foreground="#5A5A6A" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <Border Grid.Column="2" Background="{x:Bind TagBrush}" Opacity="0.85" CornerRadius="3" Padding="6,2" VerticalAlignment="Top">
                         <TextBlock Text="{x:Bind TagLabel}" FontSize="9" Foreground="Black" />
@@ -40,16 +41,18 @@
         </DataTemplate>
 
         <DataTemplate x:Key="CategoryTemplate" x:DataType="models:CategoryViewModel">
-            <StackPanel Margin="0,0,0,8">
-                <TextBlock Text="{x:Bind Name}" FontSize="10" Foreground="#5A5A6A" Margin="0,20,0,12" CharacterSpacing="150" />
-                <ItemsControl ItemsSource="{x:Bind Scripts}" ItemTemplate="{StaticResource ScriptCardTemplate}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="0" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </StackPanel>
+            <Expander Margin="0,20,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="False">
+                <Expander.Header>
+                    <TextBlock Text="{x:Bind Name}" FontSize="10" Foreground="#5A5A6A" CharacterSpacing="150" VerticalAlignment="Center" />
+                </Expander.Header>
+                <ItemsRepeater ItemsSource="{x:Bind Scripts}" ItemTemplate="{StaticResource ScriptCardTemplate}" Margin="0,12,0,0">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout Orientation="Horizontal" MaximumRowsOrColumns="2" ItemsStretch="Fill"
+                                           MinItemWidth="200" MinItemHeight="100"
+                                           MinRowSpacing="12" MinColumnSpacing="12" />
+                    </ItemsRepeater.Layout>
+                </ItemsRepeater>
+            </Expander>
         </DataTemplate>
     </Page.Resources>
 
