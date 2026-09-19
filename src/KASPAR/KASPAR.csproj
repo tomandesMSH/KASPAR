@@ -53,4 +53,17 @@
     <None Include="..\..\scripts\*.*" CopyToOutputDirectory="PreserveNewest" Link="scripts\%(Filename)%(Extension)" />
     <None Include="..\..\scripts\LocalAccountDuringInstallation\**" CopyToOutputDirectory="PreserveNewest" Link="scripts\LocalAccountDuringInstallation\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
+
+  <!-- `dotnet publish` does not pick up the compiled XAML (*.xbf) and the app's resource index (KASPAR.pri) that the
+       build writes next to KASPAR.exe. Without them WinUI fail-fasts on launch (0xc000027b in Microsoft.UI.Xaml.dll). -->
+  <Target Name="IncludeXamlOutputsInPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <_XamlPublishOutput Include="$(OutDir)$(TargetName).pri;$(OutDir)*.xbf" />
+      <!-- This target can run more than once per publish; remove first so the items are never duplicated (NETSDK1152). -->
+      <ResolvedFileToPublish Remove="@(_XamlPublishOutput)" />
+      <ResolvedFileToPublish Include="@(_XamlPublishOutput)"
+                             RelativePath="%(Filename)%(Extension)"
+                             CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>
