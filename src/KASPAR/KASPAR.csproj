@@ -15,6 +15,9 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Required by the source-generated COM interop in Services/Tweaks/MicrophoneVolume.cs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>none</DebugType>
 
     <!-- Unpackaged, self-contained deployment: no MSIX, no separate WinAppSDK runtime install. -->
     <WindowsPackageType>None</WindowsPackageType>
@@ -34,12 +37,20 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <!-- Only the WindowsAppSDK components the app uses. The Microsoft.WindowsAppSDK metapackage would also pull in
+         .AI, .ML, .Widgets and .Search (onnxruntime, DirectML, ...), ~50 MB the app never loads. -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.6" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.6" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.DWrite" Version="2.1.0" />
     <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
-  <!-- Copy the scripts/ payload (untouched, lives at repo root) next to the built exe. -->
+  <!-- Copy the standalone interactive tools (scripts/*.exe etc.) next to the built exe. The registry/audio tweaks
+       are implemented in-process (Services/Tweaks), so nothing else under scripts/ ships. -->
   <ItemGroup>
-    <None Include="..\..\scripts\**" CopyToOutputDirectory="PreserveNewest" Link="scripts\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\scripts\*.*" CopyToOutputDirectory="PreserveNewest" Link="scripts\%(Filename)%(Extension)" />
+    <None Include="..\..\scripts\LocalAccountDuringInstallation\**" CopyToOutputDirectory="PreserveNewest" Link="scripts\LocalAccountDuringInstallation\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 using KASPAR.Models;
 using KASPAR.Services;
+using KASPAR.Services.Tweaks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -75,7 +76,7 @@ public sealed partial class MainPage : Page
         RunButton.Content = $"Run Tweaks ({count})";
         RunButton.IsEnabled = count > 0;
 
-        var canRevert = count > 0 && selected.All(c => c.Definition.RevertExe is not null);
+        var canRevert = count > 0 && selected.All(c => c.Definition.Revert is not null);
         RevertButton.Content = $"Revert ({count})";
         RevertButton.IsEnabled = canRevert;
         ToolTipService.SetToolTip(RevertButton, canRevert || count == 0
@@ -98,7 +99,7 @@ public sealed partial class MainPage : Page
 
         foreach (var s in interactive)
         {
-            ScriptRunner.RunInteractive(s.Exe);
+            ScriptRunner.RunInteractive(s.Exe!);
         }
 
         if (silent.Count == 0)
@@ -114,9 +115,7 @@ public sealed partial class MainPage : Page
         {
             var s = silent[i];
             dialog.AddLog($"Running: {s.Name}...", RunProgressDialog.LineStyle.Running);
-            var result = s.RequiresAdmin
-                ? await ScriptRunner.RunElevatedAsync(s.Exe)
-                : await ScriptRunner.RunScriptAsync(s.Exe);
+            var result = await ScriptRunner.RunTweakAsync(s.Apply!);
 
             if (result.Success)
             {
@@ -142,7 +141,7 @@ public sealed partial class MainPage : Page
 
     private async void Revert_Click(object sender, RoutedEventArgs e)
     {
-        var toRevert = _allCards.Where(c => c.IsSelected && c.Definition.RevertExe is not null)
+        var toRevert = _allCards.Where(c => c.IsSelected && c.Definition.Revert is not null)
             .Select(c => c.Definition).ToList();
         if (toRevert.Count == 0)
         {
@@ -159,9 +158,7 @@ public sealed partial class MainPage : Page
             dialog.AddLog($"Reverting: {s.Name}...", RunProgressDialog.LineStyle.Running);
             try
             {
-                var runTask = s.RequiresAdmin
-                    ? ScriptRunner.RunElevatedAsync(s.RevertExe!)
-                    : ScriptRunner.RunScriptAsync(s.RevertExe!);
+                var runTask = ScriptRunner.RunTweakAsync(s.Revert!);
                 var completed = await Task.WhenAny(runTask, Task.Delay(TimeSpan.FromSeconds(10)));
 
                 if (completed != runTask)
@@ -205,7 +202,7 @@ public sealed partial class MainPage : Page
         _ = dialog.ShowAsync();
 
         dialog.AddLog("Creating restore point...", RunProgressDialog.LineStyle.Running);
-        var result = await ScriptRunner.RunScriptAsync("apply/RestorePoint_Apply.exe");
+        var result = await ScriptRunner.RunTweakAsync(RestorePoint.Create);
         dialog.AddLog(
             result.Success ? "Restore point created successfully." : $"Failed: {result.Message}",
             result.Success ? RunProgressDialog.LineStyle.Ok : RunProgressDialog.LineStyle.Error);

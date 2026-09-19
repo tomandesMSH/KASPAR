@@ -14,7 +14,6 @@ It allows advanced users to tweak Windows behavior safely, like modifying regist
 ## 🛠️Requirements
 
 - Windows 10 or later.
-- Python 3.x
 
 To build or run KASPAR from source, you'll also need the [.NET SDK](https://dotnet.microsoft.com/download) (KASPAR's app shell is a native [WinUI 3](https://learn.microsoft.com/windows/apps/winui/winui3/) app).
 
