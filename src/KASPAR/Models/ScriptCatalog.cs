@@ -1,3 +1,5 @@
+using KASPAR.Services.Tweaks;
+
 namespace KASPAR.Models;
 
 /// <summary>
@@ -18,8 +20,8 @@ public static class ScriptCatalog
                     Name = "Disable Advertisement ID",
                     Description = "Stops Windows from using your ad targeting ID",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/DisableAdvertisementID_Apply.exe",
-                    RevertExe = "revert/DisableAdvertisementID_Revert.exe",
+                    Apply = TweakLibrary.AdvertisementId.Apply,
+                    Revert = TweakLibrary.AdvertisementId.Revert,
                     DocsAnchor = "disableadvertisementid",
                 },
                 new()
@@ -28,8 +30,8 @@ public static class ScriptCatalog
                     Name = "Remove Start Menu Ads",
                     Description = "Remove sponsored app suggestions in Start menu",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/StartAds_Apply.exe",
-                    RevertExe = "revert/StartAds_Revert.exe",
+                    Apply = TweakLibrary.StartAds.Apply,
+                    Revert = TweakLibrary.StartAds.Revert,
                     DocsAnchor = "startads",
                 },
                 new()
@@ -38,8 +40,8 @@ public static class ScriptCatalog
                     Name = "Disable Dynamic Search",
                     Description = "Disables News/Articles in Start and Search",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/DisableDynamicSearch_Apply.exe",
-                    RevertExe = "revert/DisableDynamicSearch_Revert.exe",
+                    Apply = TweakLibrary.DynamicSearch.Apply,
+                    Revert = TweakLibrary.DynamicSearch.Revert,
                     DocsAnchor = "disabledynamicsearch",
                 },
                 new()
@@ -49,7 +51,6 @@ public static class ScriptCatalog
                     Description = "Helps you create a local account",
                     Tag = ScriptTag.Moderate,
                     Exe = "LocalAccount.exe",
-                    RevertExe = null,
                     Interactive = true,
                     DocsAnchor = "localaccount",
                 },
@@ -66,8 +67,8 @@ public static class ScriptCatalog
                     Name = "Classic Right-Click Menu",
                     Description = "Restores the full context menu (Win10)",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/ClassicRClickMenu_Apply.exe",
-                    RevertExe = "revert/ClassicRClickMenu_Revert.exe",
+                    Apply = TweakLibrary.ClassicRClickApply,
+                    Revert = TweakLibrary.ClassicRClickRevert,
                     DocsAnchor = "classicrclickmenu",
                 },
                 new()
@@ -76,8 +77,8 @@ public static class ScriptCatalog
                     Name = "Detailed Shutdown",
                     Description = "Shows you whats happening on shutdown",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/DetailedShutdown_Apply.exe",
-                    RevertExe = "revert/DetailedShutdown_Revert.exe",
+                    Apply = TweakLibrary.DetailedShutdown.Apply,
+                    Revert = TweakLibrary.DetailedShutdown.Revert,
                     DocsAnchor = "detailedshutdown",
                 },
                 new()
@@ -86,8 +87,8 @@ public static class ScriptCatalog
                     Name = "Enable End Task",
                     Description = "Adds End Task option to taskbar",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/EndTask_Apply.exe",
-                    RevertExe = "revert/EndTask_Revert.exe",
+                    Apply = TweakLibrary.EndTask.Apply,
+                    Revert = TweakLibrary.EndTask.Revert,
                     DocsAnchor = "endtask",
                 },
                 new()
@@ -96,8 +97,8 @@ public static class ScriptCatalog
                     Name = "Remove Drop File prompt",
                     Description = "Disable drag-and-drop window",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/DropFileRemove_Apply.exe",
-                    RevertExe = "revert/DropFileRemove_Revert.exe",
+                    Apply = TweakLibrary.DropFileRemove.Apply,
+                    Revert = TweakLibrary.DropFileRemove.Revert,
                     DocsAnchor = "dropfileremove",
                 },
             },
@@ -114,7 +115,6 @@ public static class ScriptCatalog
                     Description = "Switch to high-performance or battery saver anytime",
                     Tag = ScriptTag.Safe,
                     Exe = "PowerPlan.exe",
-                    RevertExe = null,
                     Interactive = true,
                     DocsAnchor = "powerplan",
                 },
@@ -125,7 +125,6 @@ public static class ScriptCatalog
                     Description = "Bypass region-locked Windows features",
                     Tag = ScriptTag.Moderate,
                     Exe = "DeviceSetupRegion.exe",
-                    RevertExe = null,
                     Interactive = true,
                     DocsAnchor = "devicesetupregion",
                 },
@@ -135,8 +134,8 @@ public static class ScriptCatalog
                     Name = "Local Search Only",
                     Description = "Restrict Windows Search to local files only",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/LocalSearch_Apply.exe",
-                    RevertExe = "revert/LocalSearch_Revert.exe",
+                    Apply = TweakLibrary.LocalSearch.Apply,
+                    Revert = TweakLibrary.LocalSearch.Revert,
                     DocsAnchor = "localsearch",
                 },
                 new()
@@ -146,7 +145,6 @@ public static class ScriptCatalog
                     Description = "Control whether Windows forces updates on shutdown",
                     Tag = ScriptTag.Moderate,
                     Exe = "ShutdownAndDontUpdate.exe",
-                    RevertExe = null,
                     Interactive = true,
                     DocsAnchor = "shutdownanddontupdate",
                 },
@@ -156,8 +154,8 @@ public static class ScriptCatalog
                     Name = "Remove ask Copilot",
                     Description = "Removes the \"Ask Copilot\" option from the context menu.",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/AskCopilotDisable_Apply.exe",
-                    RevertExe = "revert/AskCopilotDisable_Revert.exe",
+                    Apply = TweakLibrary.AskCopilot.Apply,
+                    Revert = TweakLibrary.AskCopilot.Revert,
                 },
                 new()
                 {
@@ -165,8 +163,8 @@ public static class ScriptCatalog
                     Name = "Max Microphone Volume",
                     Description = "Sets your microphone volume to 100% and unmutes it",
                     Tag = ScriptTag.Safe,
-                    Exe = "apply/micvolume_Apply.exe",
-                    RevertExe = "revert/micvolume_Revert.exe",
+                    Apply = () => MicrophoneVolume.Set(1.0f),
+                    Revert = () => MicrophoneVolume.Set(0.0f),
                 },
             },
         },
