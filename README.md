@@ -1,4 +1,4 @@
-[![Documentation](https://img.shields.io/badge/Documentation-–?style=for-the-badge&logo=gitbook&color=blue)](https://tomandesmsh.github.io/KASPARDocs/)
+[![Documentation](https://img.shields.io/badge/Documentation-–?style=for-the-badge&logo=gitbook&color=blue)](https://tomandes.eu/KASPARDocs/)
 ![Logo](https://github.com/tomandesMSH/KASPAR/blob/main/files/kasparlogo.png?raw=true)
 ## ℹ️About Kaspar
 
@@ -29,4 +29,4 @@ dotnet run
 
 ## 🎓 Documentation
 
-### [KASPAR Official Documentation ](https://tomandesmsh.github.io/KASPARDocs/)
+### [KASPAR Official Documentation ](https://tomandes.eu/KASPARDocs/)

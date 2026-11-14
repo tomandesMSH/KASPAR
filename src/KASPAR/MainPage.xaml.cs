@@ -8,7 +8,7 @@ namespace KASPAR;
 
 public sealed partial class MainPage : Page
 {
-    private const string DocsBase = "https://tomandesmsh.github.io/KASPARDocs/";
+    private const string DocsBase = "https://tomandes.eu/KASPARDocs/";
 
     private readonly List<CategoryViewModel> _categories;
     private readonly List<ScriptCardViewModel> _allCards;
