@@ -47,12 +47,9 @@
     <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
-  <!-- Copy the standalone interactive tools (scripts/*.exe etc.) next to the built exe. The registry/audio tweaks
-       are implemented in-process (Services/Tweaks), so nothing else under scripts/ ships. -->
-  <ItemGroup>
-    <None Include="..\..\scripts\*.*" CopyToOutputDirectory="PreserveNewest" Link="scripts\%(Filename)%(Extension)" />
-    <None Include="..\..\scripts\LocalAccountDuringInstallation\**" CopyToOutputDirectory="PreserveNewest" Link="scripts\LocalAccountDuringInstallation\%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
+  <!-- scripts/LocalAccountDuringInstallation is a standalone unattended-Windows-setup helper, downloaded directly
+       from GitHub during OOBE (before KASPAR itself can run) - unrelated to the app, so it isn't shipped with it.
+       Every tweak the app offers is implemented in-process (Services/Tweaks); nothing under scripts/ ships. -->
 
   <!-- `dotnet publish` does not pick up the compiled XAML (*.xbf) and the app's resource index (KASPAR.pri) that the
        build writes next to KASPAR.exe. Without them WinUI fail-fasts on launch (0xc000027b in Microsoft.UI.Xaml.dll). -->
