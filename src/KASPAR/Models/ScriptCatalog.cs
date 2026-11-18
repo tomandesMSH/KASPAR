@@ -1,3 +1,4 @@
+using KASPAR.Dialogs;
 using KASPAR.Services.Tweaks;
 
 namespace KASPAR.Models;
@@ -144,7 +145,7 @@ public static class ScriptCatalog
                     Name = "Shutdown & Don't Update",
                     Description = "Control whether Windows forces updates on shutdown",
                     Tag = ScriptTag.Moderate,
-                    Exe = "ShutdownAndDontUpdate.exe",
+                    Dialog = ShutdownFlyoutDialog.ShowAsync,
                     Interactive = true,
                     DocsAnchor = "shutdownanddontupdate",
                 },
