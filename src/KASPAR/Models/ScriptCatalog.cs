@@ -51,7 +51,7 @@ public static class ScriptCatalog
                     Name = "Local Account Setup",
                     Description = "Helps you create a local account",
                     Tag = ScriptTag.Moderate,
-                    Exe = "LocalAccount.exe",
+                    Dialog = LocalAccountDialog.ShowAsync,
                     Interactive = true,
                     DocsAnchor = "localaccount",
                 },
