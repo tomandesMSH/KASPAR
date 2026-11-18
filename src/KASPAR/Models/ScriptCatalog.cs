@@ -125,7 +125,7 @@ public static class ScriptCatalog
                     Name = "Device Setup Region",
                     Description = "Bypass region-locked Windows features",
                     Tag = ScriptTag.Moderate,
-                    Exe = "DeviceSetupRegion.exe",
+                    Dialog = DeviceSetupRegionDialog.ShowAsync,
                     Interactive = true,
                     DocsAnchor = "devicesetupregion",
                 },
