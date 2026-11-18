@@ -46,6 +46,11 @@ internal static class TweakLibrary
         RegValue.Str(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked", "{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}", "", null),
         RegValue.Str(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked", "{241F3F77-3B9E-4C64-8E2E-1A7C62C2F1AE}", "", null));
 
+    /// <summary>510 is Windows' default Flags bitmask (SKF_AVAILABLE|HOTKEYACTIVE|CONFIRMHOTKEY|...); 506 clears
+    /// just SKF_HOTKEYACTIVE (0x4), so Sticky Keys stays toggleable in Settings but the Shift x5 popup is gone.</summary>
+    public static readonly RegistryTweak StickyKeysHotkey = new(
+        RegValue.Str(HKCU, @"Control Panel\Accessibility\StickyKeys", "Flags", "506", "510"));
+
     /// <summary>Empty InprocServer32 default value under this CLSID makes Explorer use the classic context menu.</summary>
     public static void ClassicRClickApply()
     {

@@ -102,6 +102,15 @@ public static class ScriptCatalog
                     Revert = TweakLibrary.DropFileRemove.Revert,
                     DocsAnchor = "dropfileremove",
                 },
+                new()
+                {
+                    Id = "stickykeys",
+                    Name = "Disable Sticky Keys Shortcut",
+                    Description = "Stops the Shift x5 popup from enabling Sticky Keys",
+                    Tag = ScriptTag.Safe,
+                    Apply = TweakLibrary.StickyKeysHotkey.Apply,
+                    Revert = TweakLibrary.StickyKeysHotkey.Revert,
+                },
             },
         },
         new()
