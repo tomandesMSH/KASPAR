@@ -99,19 +99,12 @@ public sealed partial class MainPage : Page
 
         foreach (var s in interactive)
         {
-            if (s.Dialog is not null)
+            var result = await s.Dialog!(XamlRoot);
+            if (result is not null)
             {
-                var result = await s.Dialog(XamlRoot);
-                if (result is not null)
-                {
-                    StatusMessageText.Text = result.Success
-                        ? $"{s.Name}: {result.Message}"
-                        : $"{s.Name} failed: {result.Message}";
-                }
-            }
-            else
-            {
-                ScriptRunner.RunInteractive(s.Exe!);
+                StatusMessageText.Text = result.Success
+                    ? $"{s.Name}: {result.Message}"
+                    : $"{s.Name} failed: {result.Message}";
             }
         }
 
