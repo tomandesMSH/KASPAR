@@ -115,7 +115,7 @@ public static class ScriptCatalog
                     Name = "Power Plan Manager",
                     Description = "Switch to high-performance or battery saver anytime",
                     Tag = ScriptTag.Safe,
-                    Exe = "PowerPlan.exe",
+                    Dialog = PowerPlanDialog.ShowAsync,
                     Interactive = true,
                     DocsAnchor = "powerplan",
                 },
