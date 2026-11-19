@@ -1,4 +1,5 @@
 scripts/legacy
+.claude/settings.local.json
 src/KASPAR/bin/
 src/KASPAR/obj/
 src/KASPAR/publish/
