@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KASPAR — switch off what Windows won't let you</title>
+<title>KASPAR - switch off what Windows won't let you</title>
 <meta name="description" content="KASPAR is a free, open source Windows app for the settings Microsoft never gave you a button for. Remove Start menu ads, bring back the full right-click menu, keep web results out of search. Every tweak can be undone.">
 <meta name="theme-color" content="#0b0d14">
-<meta property="og:title" content="KASPAR — switch off what Windows won't let you">
+<meta property="og:title" content="KASPAR - switch off what Windows won't let you">
 <meta property="og:description" content="A free Windows app for the settings Microsoft never gave you a button for. Every tweak can be undone.">
 <meta property="og:type" content="website">
 <link rel="icon" href="applogo.png">
@@ -700,8 +700,8 @@ const CATALOG = [
       name: "Power plan manager", desc: "Create, switch and delete power plans, like high performance or battery saver, from one dialog.", tag: "Safe", docs: "powerplan", note: "Calls powrprof.dll directly to duplicate, rename, activate or delete a scheme." },
     { id: "devsetupregion", app: "Device Setup Region", appDesc: "Bypass region-locked Windows features", interactive: true,
       name: "Device setup region", desc: "Changes your region to reach features Windows only ships in some countries. Opens a dialog where you pick the country.", tag: "Moderate", docs: "devicesetupregion", writes: [
-      r(HKCU, "Control Panel\\International\\Geo", "Name, Nation", SZ, "your country", "—"),
-      r(HKLM, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Control Panel\\DeviceRegion", "DeviceRegion", DW, "deleted", "—") ] },
+      r(HKCU, "Control Panel\\International\\Geo", "Name, Nation", SZ, "your country", "-"),
+      r(HKLM, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Control Panel\\DeviceRegion", "DeviceRegion", DW, "deleted", "-") ] },
     { id: "localsearch", app: "Local Search Only", appDesc: "Restrict Windows Search to local files only",
       name: "Local search only", desc: "Keeps Windows Search on your own files, with no Bing suggestions.", tag: "Safe", docs: "localsearch", writes: [
       r(HKCU, "Software\\Policies\\Microsoft\\Explorer", "DisableSearchBoxSuggestions", DW, "1", "deleted"),
