@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KASPAR — switch off what Windows won't let you</title>
+<meta name="description" content="KASPAR is a free, open source Windows app for the settings Microsoft never gave you a button for. Remove Start menu ads, bring back the full right-click menu, keep web results out of search. Every tweak can be undone.">
+<meta name="theme-color" content="#0b0d14">
+<meta property="og:title" content="KASPAR — switch off what Windows won't let you">
+<meta property="og:description" content="A free Windows app for the settings Microsoft never gave you a button for. Every tweak can be undone.">
+<meta property="og:type" content="website">
+<link rel="icon" href="applogo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #07080d;
+    --bg: #0b0d14;
+    --card: #11141c;
+    --raised: #1a1e28;
+    --line: rgba(238, 240, 245, 0.08);
+    --line-strong: rgba(238, 240, 245, 0.14);
+    --text: #eef0f5;
+    --text-2: #a3a9b8;
+    --text-3: #7a8296;
+    --accent: #04a2cc;
+    --accent-ink: #46c3e6;
+    --moderate: #d9a441;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --sans: "Geist", "Segoe UI", system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --win: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  .mono { font-family: var(--mono); }
+  .ico { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* Navigation */
+  .nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11, 13, 20, 0.86);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .wrap { height: 64px; display: flex; align-items: center; gap: 32px; }
+  .nav-logo img { height: 22px; display: block; }
+  .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  .nav-links a {
+    font-size: 14px; color: var(--text-2);
+    padding: 8px 12px; border-radius: 8px;
+    transition: color 140ms var(--ease), background-color 140ms var(--ease);
+  }
+  .nav-links a:hover { color: var(--text); background: var(--raised); }
+  .menu-btn {
+    display: none; width: 36px; height: 36px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--line); color: var(--text-2);
+    align-items: center; justify-content: center; cursor: pointer; margin-left: auto;
+  }
+  .mobile-menu { display: none; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 20px; border-radius: 10px;
+    font-size: 15px; font-weight: 500; white-space: nowrap;
+    border: 1px solid transparent; cursor: pointer;
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 140ms var(--ease);
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #031016; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
+  .btn-primary:hover { background: #12b0da; }
+  .btn-secondary { background: var(--raised); color: var(--text); border-color: var(--line); }
+  .btn-secondary:hover { border-color: var(--line-strong); background: #20252f; }
+  .btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+
+  /* Hero */
+  .hero { padding: 88px 0 0; }
+  .hero-text { max-width: 760px; }
+  .hero h1 { font-size: 68px; line-height: 1.04; font-weight: 500; letter-spacing: -0.03em; margin: 0 0 24px; }
+  .hero-sub { font-size: 19px; line-height: 30px; color: var(--text-2); max-width: 36rem; margin: 0 0 40px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-meta { margin-top: 20px; font-size: 12px; color: var(--text-3); display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-meta a { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; transition: color 140ms var(--ease); }
+  .hero-meta a:hover { color: var(--text-2); }
+
+  /* Live app window */
+  .shot { margin-top: 64px; margin-bottom: -136px; position: relative; z-index: 2; }
+  .shot-cap { display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); margin-bottom: 12px; }
+  .shot-cap .ico { width: 14px; height: 14px; }
+  .window {
+    width: 100%;
+    background: #0d0d0f;
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+    font-family: var(--win);
+    position: relative;
+  }
+  .titlebar {
+    height: 36px; display: flex; align-items: center; padding: 0 0 0 16px;
+    background: #141416; border-bottom: 1px solid var(--line);
+    font-size: 12px; color: var(--text-3);
+  }
+  .titlebar img { width: 16px; height: 16px; margin-right: 8px; }
+  .caption { margin-left: auto; display: flex; height: 100%; }
+  .caption span { width: 46px; display: grid; place-items: center; }
+  .caption svg { width: 10px; height: 10px; stroke: var(--text-3); stroke-width: 1; fill: none; }
+  .app { display: grid; grid-template-columns: 220px 1fr; height: 600px; position: relative; }
+  .app-side { background: #141416; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+  .app-brand { padding: 20px 24px 16px; border-bottom: 1px solid var(--line); }
+  .app-brand img { width: 136px; display: block; }
+  .app-brand div { font-size: 11px; color: var(--text-3); margin-top: 8px; }
+  .app-nav { padding: 16px 12px; display: grid; gap: 2px; }
+  .app-nav span { height: 32px; display: flex; align-items: center; padding: 0 12px; border-radius: 6px; font-size: 13px; color: var(--text-3); }
+  .app-nav .on { background: #1a2a30; color: var(--accent-ink); }
+  .app-foot { margin-top: auto; padding: 16px; font-size: 11px; color: var(--text-3); }
+  .app-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .app-head { padding: 24px 32px 0; display: flex; align-items: center; gap: 8px; }
+  .app-head h3 { margin: 0 auto 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .w-btn {
+    height: 32px; padding: 0 12px; border-radius: 6px; font-size: 13px;
+    display: inline-flex; align-items: center; white-space: nowrap; cursor: pointer;
+    background: #2a2a2e; color: var(--text); border: 1px solid rgba(255,255,255,0.06);
+    font-family: var(--win);
+    transition: background-color 120ms var(--ease), transform 120ms var(--ease);
+  }
+  .w-btn:hover { background: #323237; }
+  .w-btn:active { transform: scale(0.98); }
+  .w-btn:disabled { color: #6c6c74; background: #1d1d21; cursor: default; transform: none; }
+  .w-btn.run { background: var(--accent); color: #031016; border-color: transparent; }
+  .w-btn.run:hover { background: #12b0da; }
+  .w-btn.run:disabled { background: #1d1d21; color: #6c6c74; }
+  .app-tools { padding: 16px 32px 0; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-3); }
+  .app-tools .count { margin-left: 8px; font-variant-numeric: tabular-nums; }
+  .app-body { padding: 0 32px 16px; flex: 1; overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: #2a2a30 transparent; }
+  .cat { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; background: #121214; }
+  .cat-head {
+    width: 100%; height: 44px; display: flex; align-items: center; padding: 0 16px;
+    font-size: 12px; color: var(--text-2); background: none; border: 0; cursor: pointer; font-family: var(--win);
+    border-radius: 8px; transition: background-color 120ms var(--ease);
+  }
+  .cat-head:hover { background: #17171a; }
+  .cat-head .ico { width: 14px; height: 14px; margin-left: auto; color: var(--text-3); transition: transform 180ms var(--ease); }
+  .cat[data-open="false"] .cat-head .ico { transform: rotate(180deg); }
+  .cat[data-open="false"] .cat-grid { display: none; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px; }
+  .w-card {
+    min-height: 92px; border-radius: 10px; padding: 16px; text-align: left; cursor: pointer;
+    background: #141416; border: 1px solid #2a2a30; font-family: var(--win);
+    display: grid; grid-template-columns: 20px 1fr auto; gap: 12px; align-items: start;
+    transition: background-color 120ms var(--ease), border-color 120ms var(--ease);
+  }
+  .w-card:hover { border-color: #3a3a42; }
+  .w-card[aria-checked="true"] { background: #13252a; border-color: var(--accent); }
+  .w-check { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #5a5a66; margin-top: 1px; display: grid; place-items: center; transition: background-color 120ms var(--ease), border-color 120ms var(--ease); }
+  .w-check svg { width: 12px; height: 12px; stroke: #031016; stroke-width: 2.5; fill: none; opacity: 0; transition: opacity 120ms var(--ease); }
+  .w-card[aria-checked="true"] .w-check { background: var(--accent); border-color: var(--accent); }
+  .w-card[aria-checked="true"] .w-check svg { opacity: 1; }
+  .w-name { font-size: 14px; font-weight: 600; color: #e8e8f0; display: block; }
+  .w-desc { font-size: 12px; color: #6c6c7c; margin-top: 4px; display: block; }
+  .w-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: #031016; background: #4cc38a; }
+  .w-tag.mod { background: var(--moderate); }
+  .app-status { height: 28px; background: #141416; border-top: 1px solid var(--line); padding: 0 20px; display: flex; align-items: center; font-size: 11px; color: var(--text-3); flex: none; }
+
+  /* Run dialog inside the window */
+  .w-overlay {
+    position: absolute; inset: 0; background: rgba(0, 0, 0, 0.55);
+    display: grid; place-items: center; opacity: 0; pointer-events: none;
+    transition: opacity 200ms var(--ease);
+  }
+  .w-overlay.open { opacity: 1; pointer-events: auto; }
+  .w-dialog {
+    width: 468px; max-width: calc(100% - 32px);
+    background: #202022; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5); overflow: hidden;
+    transform: translateY(8px); transition: transform 300ms var(--ease);
+  }
+  .w-overlay.open .w-dialog { transform: none; }
+  .w-dialog-body { padding: 24px; }
+  .w-dialog h4 { margin: 0 0 16px; font-size: 20px; font-weight: 600; }
+  .w-log { height: 180px; overflow-y: auto; background: #0d0d0f; padding: 12px 16px; display: grid; align-content: start; gap: 4px; font-family: Consolas, "Cascadia Mono", var(--mono); font-size: 11px; line-height: 16px; white-space: pre-wrap; }
+  .w-log .running { color: #ffc800; }
+  .w-log .ok { color: var(--accent); }
+  .w-log .done { color: #e8e8f0; }
+  .w-progress { height: 4px; border-radius: 2px; background: #3a3a3e; margin-top: 16px; overflow: hidden; }
+  .w-progress i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width 300ms var(--ease); }
+  .w-dialog-foot { padding: 20px 24px; background: #1a1a1c; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: flex-end; min-height: 72px; }
+  .w-dialog-foot .w-btn { min-width: 120px; justify-content: center; visibility: hidden; }
+  .w-dialog-foot .w-btn.show { visibility: visible; }
+
+  /* Sections */
+  section.block { padding: 128px 0 0; }
+  .first-block { padding-top: 232px !important; padding-bottom: 128px; border-top: 1px solid var(--line); background: var(--bg-deep); }
+  .section-head { max-width: 640px; margin-bottom: 48px; }
+  h2 { font-size: 44px; line-height: 1.08; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 16px; }
+  .lede { font-size: 17px; line-height: 28px; color: var(--text-2); margin: 0; }
+  .lede + .lede { margin-top: 16px; }
+
+  /* Why + before/after */
+  .why { display: grid; grid-template-columns: 4fr 7fr; gap: 64px; align-items: center; }
+  .why-by { margin-top: 24px; font-size: 14px; color: var(--text-3); }
+  .ba { border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+  .ba-tabs { display: flex; gap: 4px; padding: 8px; border-bottom: 1px solid var(--line); }
+  .seg {
+    height: 32px; padding: 0 12px; border-radius: 8px; font-size: 14px; color: var(--text-2);
+    background: transparent; border: 1px solid transparent; cursor: pointer;
+    transition: color 140ms var(--ease), background-color 140ms var(--ease);
+  }
+  .seg:hover { color: var(--text); }
+  .seg[aria-selected="true"], .seg[aria-pressed="true"] { background: var(--raised); color: var(--text); border-color: var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+  .stage {
+    position: relative; height: 520px; overflow: hidden;
+    background: linear-gradient(180deg, #131720 0%, #0d1017 100%);
+    font-family: var(--win); color: #f3f3f3;
+  }
+  .stage-scene { position: absolute; inset: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .stage-scene.swap { animation: fade 180ms var(--ease) both; }
+  }
+  .ba-foot { display: flex; align-items: center; gap: 16px; padding: 12px 12px 12px 24px; border-top: 1px solid var(--line); min-height: 72px; }
+  .ba-cap { min-width: 0; }
+  .ba-cap b { display: block; font-weight: 500; font-size: 15px; }
+  .ba-cap span { display: block; font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .ba-toggle { margin-left: auto; display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--bg-deep); border: 1px solid var(--line); flex: none; }
+
+  /* Windows 11 pieces, drawn in code */
+  .wm {
+    position: absolute; background: #2c2c2c; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 4px; box-shadow: 0 16px 32px rgba(0,0,0,0.45);
+    font-size: 13px; width: 268px;
+  }
+  .wm-item { height: 32px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 4px; color: #f3f3f3; position: relative; white-space: nowrap; }
+  .wm-item svg { width: 16px; height: 16px; stroke: #d6d6d6; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .wm-item .sc { margin-left: auto; color: #9d9d9d; font-size: 12px; }
+  .wm-item .chev { margin-left: auto; width: 12px; height: 12px; }
+  .wm-item.new, .wm-item.hl { background: #383838; }
+  .wm-item.new::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--accent); }
+  .wm-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
+  .wm-icons { display: flex; justify-content: space-between; padding: 2px 4px 4px; }
+  .wm-icons span { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 4px; }
+  .wm-icons svg { width: 16px; height: 16px; stroke: #d6d6d6; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .wm.classic { width: 248px; padding: 4px 0; }
+  .wm.classic .wm-item { height: 28px; padding: 0 16px 0 40px; border-radius: 0; }
+  .wm.classic .wm-item.new { background: transparent; }
+  .wm.classic .wm-sep { margin: 4px 12px 4px 40px; }
+  .wm-head { height: 32px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; color: #9d9d9d; }
+  .dot-upd { position: relative; }
+  .dot-upd::after { content: ""; position: absolute; right: -1px; top: -1px; width: 6px; height: 6px; border-radius: 50%; background: #f7a43a; box-shadow: 0 0 0 1.5px #2c2c2c; }
+  .file-tile { position: absolute; left: 48px; top: 48px; width: 96px; padding: 8px 4px; border-radius: 4px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); font-size: 12px; line-height: 16px; }
+  .file-tile svg { width: 40px; height: 40px; stroke: #c9ced8; stroke-width: 1.2; fill: none; display: block; margin: 0 auto 8px; }
+  .taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: #1c1c1e; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: center; align-items: center; gap: 4px; }
+  .tb { width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; position: relative; }
+  .tb svg { width: 20px; height: 20px; stroke: #c9ced8; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tb.active { background: rgba(255,255,255,0.08); }
+  .tb.run::after { content: ""; position: absolute; bottom: 2px; left: 50%; width: 6px; height: 3px; margin-left: -3px; border-radius: 2px; background: #9aa0aa; }
+  .tb.active::after { width: 16px; margin-left: -8px; background: #c9ced8; }
+  .winlogo { width: 18px; height: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .winlogo i { background: #c9ced8; border-radius: 1px; }
+  .startmenu { position: absolute; left: calc(50% - 240px); width: 480px; top: -40px; bottom: 60px; background: #242426; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; }
+  .startmenu-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; border-top: 1px solid rgba(255,255,255,0.06); background: #1f1f21; display: flex; align-items: center; padding: 0 24px; gap: 12px; font-size: 13px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #3a4150; display: grid; place-items: center; font-size: 12px; color: #e3e6ec; }
+  .power-btn { margin-left: auto; width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; background: rgba(255,255,255,0.08); }
+  .power-btn svg { width: 18px; height: 18px; stroke: #e3e6ec; stroke-width: 1.5; fill: none; stroke-linecap: round; }
+  .sm-search { margin: 24px 24px 0; height: 36px; border-radius: 18px; background: #1b1b1d; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 13px; color: #8d8d93; }
+  .sm-search svg { width: 14px; height: 14px; stroke: #8d8d93; stroke-width: 1.5; fill: none; }
+  .sm-pinned { padding: 24px 24px 0; }
+  .sm-pinned h5 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: #f3f3f3; }
+  .sm-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .sm-app { display: grid; justify-items: center; gap: 8px; padding: 12px 0; font-size: 11px; color: #d6d6d6; }
+  .sm-app svg { width: 24px; height: 24px; stroke: #c9ced8; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Tweaks explorer */
+  .explorer { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .list { display: grid; gap: 32px; }
+  .group-name { font-size: 13px; font-weight: 400; color: var(--text-3); margin: 0 0 8px 12px; }
+  .rows { display: grid; gap: 2px; }
+  .row {
+    width: 100%; text-align: left; cursor: pointer;
+    display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+    height: 44px; padding: 0 12px; border-radius: 8px;
+    background: transparent; border: 1px solid transparent;
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+  .row:hover { background: var(--card); }
+  .row[aria-selected="true"] { background: var(--raised); border-color: var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+  .row-name { font-size: 15px; }
+  .row-tag { font-family: var(--mono); font-size: 12px; color: var(--text-3); display: inline-flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #4cc38a; }
+  .dot.mod { background: var(--moderate); }
+
+  .detail { position: sticky; top: 96px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+  .detail-top { padding: 24px 24px 20px; }
+  .detail-cat { font-size: 13px; color: var(--text-3); margin-bottom: 8px; }
+  .detail h3 { margin: 0 0 8px; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+  .detail p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 24px; }
+  .term { background: var(--bg-deep); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; line-height: 20px; }
+  .term-bar { display: flex; align-items: center; height: 40px; padding: 0 24px; color: var(--text-3); border-bottom: 1px solid var(--line); gap: 8px; }
+  .term-bar b { font-weight: 500; color: var(--accent-ink); }
+  .term-body { padding: 16px 24px 20px; display: grid; gap: 16px; min-height: 216px; align-content: start; }
+  .w-entry .path { color: var(--text-3); word-break: break-all; }
+  .w-entry .path .hive { color: var(--text-2); }
+  .w-entry .val { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 4px; }
+  .w-entry .k { color: var(--text); word-break: break-all; }
+  .w-entry .t { color: var(--text-3); }
+  .w-entry .set { color: var(--accent-ink); }
+  .w-entry .rev { color: var(--text-3); }
+  .note { color: var(--text-2); }
+  .detail-foot { display: flex; align-items: center; gap: 16px; padding: 16px 24px; border-top: 1px solid var(--line); font-size: 14px; color: var(--text-3); }
+  .detail-foot a { color: var(--text-2); display: inline-flex; gap: 6px; align-items: center; margin-left: auto; transition: color 140ms var(--ease); }
+  .detail-foot a:hover { color: var(--text); }
+  .detail-foot .ico { width: 16px; height: 16px; }
+
+  /* Steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .step { padding: 24px; background: var(--card); border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+  .step:first-child { border-left: 0; }
+  .step-ui { height: 120px; border-radius: 10px; background: var(--bg-deep); border: 1px solid var(--line); display: grid; place-items: center; margin-bottom: 24px; font-family: var(--win); }
+  .step h3 { font-size: 19px; font-weight: 500; margin: 0 0 8px; display: flex; gap: 12px; align-items: baseline; }
+  .step h3 .n { font-family: var(--mono); font-size: 12px; color: var(--text-3); font-weight: 400; }
+  .step p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 24px; }
+  .fchip { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; background: #17171a; border: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+  .fchip svg { width: 28px; height: 28px; stroke: var(--accent-ink); stroke-width: 1.3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .fchip small { display: block; color: var(--text-3); font-size: 12px; font-family: var(--mono); margin-top: 2px; }
+  .ui-col { display: grid; gap: 12px; justify-items: center; }
+  .ui-row { display: flex; gap: 8px; }
+  .ui-log { font-family: Consolas, "Cascadia Mono", var(--mono); font-size: 11px; color: var(--accent); }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; padding: 0 24px; }
+  .fact h4 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
+  .fact p { margin: 0; color: var(--text-2); font-size: 14px; line-height: 22px; }
+
+  /* Closing */
+  .closing { padding: 128px 0; }
+  .closing-inner { border-top: 1px solid var(--line); padding-top: 80px; display: flex; align-items: end; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+  .closing h2 { font-size: 64px; letter-spacing: -0.03em; margin: 0; }
+  .closing h2 .prompt { color: var(--accent); font-family: var(--mono); font-weight: 400; letter-spacing: -0.04em; margin-right: 8px; }
+  .closing p { color: var(--text-2); margin: 16px 0 0; font-size: 17px; }
+
+  footer { border-top: 1px solid var(--line); background: var(--bg-deep); }
+  footer .wrap { display: flex; gap: 24px; align-items: center; min-height: 72px; font-size: 13px; color: var(--text-3); flex-wrap: wrap; }
+  footer nav { display: flex; gap: 20px; margin-left: auto; flex-wrap: wrap; }
+  footer a { transition: color 140ms var(--ease); }
+  footer a:hover { color: var(--text-2); }
+
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { animation: rise 480ms var(--ease) both; }
+    .hero-text .rise:nth-child(2) { animation-delay: 50ms; }
+    .hero-text .rise:nth-child(3) { animation-delay: 100ms; }
+    .hero-text .rise:nth-child(4) { animation-delay: 150ms; }
+    .shot.rise { animation-delay: 200ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .term-body > * { animation: fade 220ms var(--ease) both; }
+  }
+
+  @media (max-width: 1040px) {
+    .why, .explorer { grid-template-columns: 1fr; }
+    .detail { position: static; }
+    .steps { grid-template-columns: 1fr; }
+    .facts { grid-template-columns: 1fr; gap: 24px; }
+    .step { border-left: 0; border-top: 1px solid var(--line); }
+    .step:first-child { border-top: 0; }
+  }
+  @media (max-width: 720px) {
+    .wrap { padding: 0 20px; }
+    .nav .wrap { gap: 12px; }
+    .nav-links { display: none; }
+    .menu-btn { display: inline-flex; }
+    .mobile-menu.open { display: grid; padding: 8px 20px 16px; border-top: 1px solid var(--line); }
+    .mobile-menu a { height: 44px; display: flex; align-items: center; color: var(--text-2); font-size: 15px; }
+    .hero { padding-top: 56px; }
+    .hero h1 { font-size: 40px; line-height: 1.06; }
+    .hero-sub { font-size: 17px; line-height: 28px; margin-bottom: 32px; }
+    .hero-actions .btn { flex: 1 1 100%; }
+    h2 { font-size: 32px; }
+    .closing h2 { font-size: 44px; }
+    .shot { margin-top: 40px; margin-bottom: -80px; }
+    .shot-cap { justify-content: flex-start; }
+    .app { grid-template-columns: 1fr; height: 540px; }
+    .app-side, .app-tools { display: none; }
+    .app-head { padding: 20px 16px 0; flex-wrap: wrap; }
+    .app-head h3 { font-size: 20px; flex: 1 1 100%; margin-bottom: 8px; }
+    .app-body { padding: 0 16px 16px; }
+    .cat-grid { grid-template-columns: 1fr; }
+    .first-block { padding-top: 152px !important; padding-bottom: 96px; }
+    section.block { padding-top: 96px; }
+    .stage { height: 528px; }
+    .ba-tabs { overflow-x: auto; }
+    .seg { flex: none; }
+    .ba-foot { flex-wrap: wrap; padding: 16px; }
+    .ba-toggle { margin-left: 0; }
+    .file-tile { left: 16px; top: 24px; }
+    .wm-file { left: 48px !important; top: 100px !important; }
+    .startmenu { left: 12px; right: 12px; width: auto; }
+    .startmenu-foot { padding: 0 16px; }
+    .sm-search { margin-left: 16px; margin-right: 16px; }
+    .sm-pinned { padding: 24px 16px 0; }
+    .sm-grid { grid-template-columns: repeat(4, 1fr); }
+    .sm-app:nth-child(n+5) { display: none; }
+    .wm-power { left: auto !important; right: 28px; }
+    .wm-jump { left: calc(50% - 128px) !important; }
+    .facts { padding: 0; }
+    .closing { padding: 96px 0; }
+    footer .wrap { padding: 24px 20px; }
+    footer nav { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+    <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-rename" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></symbol>
+    <symbol id="i-app" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8h20"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-pin-off" viewBox="0 0 24 24"><path d="M12 17v5M15 9.34V6h1a2 2 0 0 0 0-4H7.89M2 2l20 20M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h12"/></symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="nav-logo" href="#" aria-label="KASPAR home"><img src="kasparlogo.png" alt="KASPAR" width="85" height="22"></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#difference">Before and after</a>
+      <a href="#tweaks">Tweaks</a>
+      <a href="#how">How it works</a>
+      <a href="https://tomandes.eu/KASPARDocs/">Docs</a>
+      <a href="https://github.com/tomandesMSH/KASPAR">GitHub</a>
+    </nav>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu"><svg class="ico"><use href="#i-menu"/></svg></button>
+    <a class="btn btn-primary btn-sm" href="https://github.com/tomandesMSH/KASPAR/releases/latest/download/KASPAR-win-Setup.exe">Download</a>
+  </div>
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Main">
+    <a href="#difference">Before and after</a>
+    <a href="#tweaks">Tweaks</a>
+    <a href="#how">How it works</a>
+    <a href="https://tomandes.eu/KASPARDocs/">Docs</a>
+    <a href="https://github.com/tomandesMSH/KASPAR">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-text">
+        <h1 class="rise">Switch off what Windows won't let you</h1>
+        <p class="hero-sub rise">KASPAR is a free Windows app for the settings Microsoft never gave you a button for. Remove Start menu ads, bring back the full right-click menu, keep web results out of search. Every tweak can be undone.</p>
+        <div class="hero-actions rise">
+          <a class="btn btn-primary" href="https://github.com/tomandesMSH/KASPAR/releases/latest/download/KASPAR-win-Setup.exe">
+            <svg class="ico"><use href="#i-download"/></svg>Download for Windows
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/tomandesMSH/KASPAR">View on GitHub</a>
+        </div>
+        <div class="hero-meta mono rise">
+          <span data-version>v1.1.2</span><span>Windows 10 and 11</span><span>MIT license</span>
+          <a href="https://github.com/tomandesMSH/KASPAR/releases/latest/download/KASPAR-win-Portable.zip">Portable .zip</a>
+        </div>
+      </div>
+
+      <div class="shot rise">
+        <div class="shot-cap"><svg class="ico"><use href="#i-pointer"/></svg>Try it. This is a demo and nothing runs on your PC</div>
+        <div class="window" role="group" aria-label="KASPAR app demo">
+          <div class="titlebar">
+            <img src="applogo.png" alt="">KASPAR
+            <div class="caption" aria-hidden="true">
+              <span><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></span>
+              <span><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9"/></svg></span>
+              <span><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0 0 10"/></svg></span>
+            </div>
+          </div>
+          <div class="app">
+            <aside class="app-side" aria-hidden="true">
+              <div class="app-brand"><img src="kasparlogo.png" alt=""><div>Take control</div></div>
+              <div class="app-nav">
+                <span class="on">Scripts</span><span>About KASPAR</span><span>Documentation</span><span>GitHub</span><span>Report a bug</span><span>Suggestions</span>
+              </div>
+              <div class="app-foot">Tomáš Vaněk · KASPAR</div>
+            </aside>
+            <div class="app-main">
+              <div class="app-head">
+                <h3>Select tweaks</h3>
+                <button class="w-btn" id="d-restore">Restore point</button>
+                <button class="w-btn" id="d-revert">Revert (0)</button>
+                <button class="w-btn run" id="d-run">Run tweaks (0)</button>
+              </div>
+              <div class="app-tools">
+                <button class="w-btn" id="d-all">Select all</button>
+                <button class="w-btn" id="d-none">Clear</button>
+                <span class="count" id="d-count">0 selected</span>
+              </div>
+              <div class="app-body" id="d-body"></div>
+              <div class="app-status" id="d-status">KASPAR ready.</div>
+            </div>
+            <div class="w-overlay" id="d-overlay">
+              <div class="w-dialog" role="dialog" aria-modal="true" aria-labelledby="d-title">
+                <div class="w-dialog-body">
+                  <h4 id="d-title">Running Scripts...</h4>
+                  <div class="w-log" id="d-log" aria-live="polite"></div>
+                  <div class="w-progress"><i id="d-bar"></i></div>
+                </div>
+                <div class="w-dialog-foot"><button class="w-btn" id="d-close">Done - Close</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block first-block" id="difference">
+    <div class="wrap why">
+      <div>
+        <h2>Windows crossed a line</h2>
+        <p class="lede">Ads in the Start menu. Bing opening when you just wanted to launch an app. A right-click menu that hides half its options behind an extra click.</p>
+        <p class="lede">None of it was asked for, and most of it is a setting Windows already has. Microsoft just doesn't give you a button for it. KASPAR does.</p>
+        <div class="why-by">Tomáš Vaněk, who started KASPAR as a personal collection of fixes</div>
+      </div>
+      <div class="ba">
+        <div class="ba-tabs" role="tablist" aria-label="Examples">
+          <button class="seg" role="tab" data-scene="menu" aria-selected="true">Right-click menu</button>
+          <button class="seg" role="tab" data-scene="power" aria-selected="false">Power menu</button>
+          <button class="seg" role="tab" data-scene="taskbar" aria-selected="false">Taskbar</button>
+        </div>
+        <div class="stage" id="stage" role="tabpanel"><div class="stage-scene" id="scene"></div></div>
+        <div class="ba-foot">
+          <div class="ba-cap" id="ba-cap" aria-live="polite"></div>
+          <div class="ba-toggle" role="group" aria-label="State">
+            <button class="seg" data-state="before" aria-pressed="false">Windows default</button>
+            <button class="seg" data-state="after" aria-pressed="true">With KASPAR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="tweaks">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>15 tweaks, nothing hidden</h2>
+        <p class="lede">Each one writes values Windows already reads. Pick a tweak to see exactly what it changes and what Revert puts back.</p>
+      </div>
+      <div class="explorer">
+        <div class="list" id="list"></div>
+        <aside class="detail" id="detail" aria-live="polite"></aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>From download to done in a minute</h2>
+        <p class="lede">KASPAR applies every tweak itself. There are no scripts to download and no Python or PowerShell to set up.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-ui" aria-hidden="true">
+            <div class="fchip"><svg><use href="#i-download"/></svg><div>KASPAR-win-Setup.exe<small data-setup-size>78 MB</small></div></div>
+          </div>
+          <h3><span class="n">01</span>Install</h3>
+          <p>Run the installer from GitHub Releases, or unzip the portable build. KASPAR asks for administrator rights when it starts.</p>
+        </div>
+        <div class="step">
+          <div class="step-ui" aria-hidden="true">
+            <div class="ui-col"><span class="w-btn">Restore point</span><span class="ui-log">Restore point created successfully.</span></div>
+          </div>
+          <h3><span class="n">02</span>Make a restore point</h3>
+          <p>One button in the top bar creates a System Restore point before you change anything.</p>
+        </div>
+        <div class="step">
+          <div class="step-ui" aria-hidden="true">
+            <div class="ui-row"><span class="w-btn">Revert (3)</span><span class="w-btn run">Run tweaks (3)</span></div>
+          </div>
+          <h3><span class="n">03</span>Pick and run</h3>
+          <p>Tick the tweaks you want and press Run. Changed your mind later? Select the same tweaks and press Revert.</p>
+        </div>
+      </div>
+      <div class="facts">
+        <div class="fact"><h4>Reversible</h4><p>Registry tweaks put back the Windows default value, or delete the value if Windows had none.</p></div>
+        <div class="fact"><h4>Updates itself</h4><p>The only thing KASPAR connects to is GitHub, to check for a new release.</p></div>
+        <div class="fact"><h4>Open source</h4><p>Written in C# with WinUI 3 and released under the MIT license. Read every line on GitHub.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="wrap closing-inner">
+      <div>
+        <h2><span class="prompt">&lt;_</span>Take control</h2>
+        <p>Free for Windows 10 and 11</p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/tomandesMSH/KASPAR/releases/latest/download/KASPAR-win-Setup.exe"><svg class="ico"><use href="#i-download"/></svg>Download for Windows</a>
+        <a class="btn btn-secondary" href="https://tomandes.eu/KASPARDocs/">Read the docs</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Made by Tomáš Vaněk · MIT license</span>
+    <nav aria-label="Footer">
+      <a href="https://tomandes.eu/KASPARDocs/">Documentation</a>
+      <a href="https://github.com/tomandesMSH/KASPAR">GitHub</a>
+      <a href="https://tomandes.eu/KASPARDocs/bug.html">Report a bug</a>
+      <a href="https://forms.gle/pxvZQtuw6dKZWEZv8">Suggestions</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+/* ---------- Catalog, from src/KASPAR/Models/ScriptCatalog.cs and Services/Tweaks ---------- */
+const HKCU = "HKEY_CURRENT_USER", HKLM = "HKEY_LOCAL_MACHINE";
+const CDM = "Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager";
+const DW = "REG_DWORD", SZ = "REG_SZ";
+const r = (hive, path, name, type, set, rev) => ({ hive, path, name, type, set, rev });
+
+const CATALOG = [
+  { app: "Privacy & Ads", name: "Privacy and ads", open: true, items: [
+    { id: "disableadid", app: "Disable Advertisement ID", appDesc: "Stops Windows from using your ad targeting ID",
+      name: "Disable Advertisement ID", desc: "Stops Windows from using your ad targeting ID, tailored experiences and suggested content, and sets telemetry to its lowest level.", tag: "Safe", docs: null, writes: [
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo", "Enabled", DW, "0", "1"),
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\Privacy", "TailoredExperiencesWithDiagnosticDataEnabled", DW, "0", "1"),
+      r(HKCU, CDM, "SubscribedContent-338393Enabled", DW, "0", "1"),
+      r(HKCU, CDM, "SubscribedContent-353694Enabled", DW, "0", "1"),
+      r(HKLM, "Software\\Policies\\Microsoft\\Windows\\DataCollection", "AllowTelemetry", DW, "0", "3") ] },
+    { id: "startads", app: "Remove Start Menu Ads", appDesc: "Remove sponsored app suggestions in Start menu",
+      name: "Remove Start menu ads", desc: "Removes sponsored app suggestions from the Start menu.", tag: "Safe", docs: "startads", writes: [
+      r(HKCU, CDM, "SystemPaneSuggestionsEnabled", DW, "0", "1") ] },
+    { id: "disabledynsrch", app: "Disable Dynamic Search", appDesc: "Disables News/Articles in Start and Search",
+      name: "Disable dynamic search", desc: "Takes news and articles out of Start and Search.", tag: "Safe", docs: "disabledynamicsearch", writes: [
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\SearchSettings", "IsDynamicSearchBoxEnabled", DW, "0", "1") ] },
+    { id: "localaccount", app: "Local Account Setup", appDesc: "Helps you create a local account", interactive: true,
+      name: "Local account setup", desc: "Creates a local Windows account, no Microsoft account needed. Opens a dialog where you choose the name and password.", tag: "Moderate", docs: "localaccount", note: "Creates the account through netapi32, the same API behind net user." },
+  ]},
+  { app: "UI & Shell Tweaks", name: "UI and shell", open: true, items: [
+    { id: "classicroclick", app: "Classic Right-Click Menu", appDesc: "Restores the full context menu (Win10)",
+      name: "Classic right-click menu", desc: "Brings back the full Windows 10 context menu, without “Show more options”. Explorer restarts to apply it.", tag: "Safe", docs: "rmenu", writes: [
+      r(HKCU, "Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32", "(Default)", SZ, "\"\"", "key deleted") ] },
+    { id: "detailedsd", app: "Detailed Shutdown", appDesc: "Shows you what's happening on shutdown",
+      name: "Detailed shutdown", desc: "Shows what Windows is doing while it shuts down, signs out and starts up.", tag: "Safe", docs: "detailedshutdown", writes: [
+      r(HKLM, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "VerboseStatus", DW, "1", "deleted") ] },
+    { id: "endtask", app: "Enable End Task", appDesc: "Adds End Task option to taskbar",
+      name: "Enable End task", desc: "Adds End task to the taskbar right-click menu, so you can close a frozen app without Task Manager.", tag: "Safe", docs: "endtask", writes: [
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings", "TaskbarEndTask", DW, "1", "deleted") ] },
+    { id: "dropfileremove", app: "Remove Drop File prompt", appDesc: "Disable drag-and-drop window",
+      name: "Remove drop file prompt", desc: "Turns off the drag-and-drop share window that appears at the top of the screen.", tag: "Safe", docs: "dropfileremove", writes: [
+      r(HKLM, "SYSTEM\\ControlSet001\\Control\\FeatureManagement\\Overrides\\14\\3895955085", "EnabledState", DW, "1", "deleted"),
+      r(HKLM, "SYSTEM\\ControlSet001\\Control\\FeatureManagement\\Overrides\\14\\3895955085", "EnabledStateOptions", DW, "0", "deleted") ] },
+    { id: "stickykeys", app: "Disable Sticky Keys Shortcut", appDesc: "Stops the Shift x5 popup from enabling Sticky Keys",
+      name: "Disable Sticky Keys shortcut", desc: "Stops Shift pressed five times from popping up Sticky Keys. Sticky Keys itself stays available in Settings.", tag: "Safe", docs: null, writes: [
+      r(HKCU, "Control Panel\\Accessibility\\StickyKeys", "Flags", SZ, "\"506\"", "\"510\"") ] },
+  ]},
+  { app: "System & Performance", name: "System and performance", open: false, items: [
+    { id: "powerplan", app: "Power Plan Manager", appDesc: "Switch to high-performance or battery saver anytime", interactive: true,
+      name: "Power plan manager", desc: "Create, switch and delete power plans, like high performance or battery saver, from one dialog.", tag: "Safe", docs: "powerplan", note: "Calls powrprof.dll directly to duplicate, rename, activate or delete a scheme." },
+    { id: "devsetupregion", app: "Device Setup Region", appDesc: "Bypass region-locked Windows features", interactive: true,
+      name: "Device setup region", desc: "Changes your region to reach features Windows only ships in some countries. Opens a dialog where you pick the country.", tag: "Moderate", docs: "devicesetupregion", writes: [
+      r(HKCU, "Control Panel\\International\\Geo", "Name, Nation", SZ, "your country", "—"),
+      r(HKLM, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Control Panel\\DeviceRegion", "DeviceRegion", DW, "deleted", "—") ] },
+    { id: "localsearch", app: "Local Search Only", appDesc: "Restrict Windows Search to local files only",
+      name: "Local search only", desc: "Keeps Windows Search on your own files, with no Bing suggestions.", tag: "Safe", docs: "localsearch", writes: [
+      r(HKCU, "Software\\Policies\\Microsoft\\Explorer", "DisableSearchBoxSuggestions", DW, "1", "deleted"),
+      r(HKLM, "SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer", "DisableSearchBoxSuggestions", DW, "1", "deleted") ] },
+    { id: "shutdownnoupdate", app: "Shutdown & Don't Update", appDesc: "Control whether Windows forces updates on shutdown", interactive: true,
+      name: "Shutdown and don't update", desc: "Puts plain Shut down and Restart back in the power menu, next to or instead of the update versions. Opens a dialog where you pick which.", tag: "Moderate", docs: "shutdownanddontupdate", writes: [
+      r(HKLM, "SOFTWARE\\Microsoft\\WindowsUpdate\\Orchestrator", "ShutdownFlyoutOptions", DW, "0xF or 0x0", "0xA") ] },
+    { id: "askcopilotdisable", app: "Remove ask Copilot", appDesc: "Removes the \"Ask Copilot\" option from the context menu.",
+      name: "Remove Ask Copilot", desc: "Removes “Ask Copilot” from the right-click menu.", tag: "Safe", docs: "askcopilotdisable", writes: [
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}", SZ, "\"\"", "deleted"),
+      r(HKCU, "Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Blocked", "{241F3F77-3B9E-4C64-8E2E-1A7C62C2F1AE}", SZ, "\"\"", "deleted") ] },
+    { id: "micvolume", app: "Max Microphone Volume", appDesc: "Sets your microphone volume to 100% and unmutes it",
+      name: "Max microphone volume", desc: "Sets your default microphone to 100% and unmutes it.", tag: "Safe", docs: "micvolume", note: "Uses the Windows audio API, not the registry. Revert sets the volume to 0%." },
+  ]},
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const icon = (id, cls = "") => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
+const $ = id => document.getElementById(id);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(res => setTimeout(res, reduced ? 0 : ms));
+
+/* ---------- Mobile menu ---------- */
+$("menu-btn").addEventListener("click", e => {
+  const open = $("mobile-menu").classList.toggle("open");
+  e.currentTarget.setAttribute("aria-expanded", open);
+});
+$("mobile-menu").addEventListener("click", e => {
+  if (e.target.tagName === "A") { $("mobile-menu").classList.remove("open"); $("menu-btn").setAttribute("aria-expanded", "false"); }
+});
+
+/* ---------- Live demo window ---------- */
+const selected = new Set(["disableadid", "startads", "classicroclick"]);
+const allItems = CATALOG.flatMap(c => c.items);
+
+$("d-body").innerHTML = CATALOG.map((cat, ci) => `
+  <div class="cat" data-open="${cat.open}">
+    <button class="cat-head" aria-expanded="${cat.open}">${esc(cat.app)}${icon("chev-up", "ico")}</button>
+    <div class="cat-grid">${cat.items.map(it => `
+      <button class="w-card" role="checkbox" aria-checked="false" data-id="${it.id}">
+        <span class="w-check">${icon("check")}</span>
+        <span><span class="w-name">${esc(it.app)}</span><span class="w-desc">${esc(it.appDesc)}</span></span>
+        <span class="w-tag${it.tag === "Moderate" ? " mod" : ""}">${it.tag}</span>
+      </button>`).join("")}
+    </div>
+  </div>`).join("");
+
+$("d-body").addEventListener("click", e => {
+  const head = e.target.closest(".cat-head");
+  if (head) {
+    const cat = head.parentElement, open = cat.dataset.open !== "true";
+    cat.dataset.open = open; head.setAttribute("aria-expanded", open);
+    return;
+  }
+  const card = e.target.closest(".w-card");
+  if (!card) return;
+  const id = card.dataset.id;
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  syncDemo();
+});
+$("d-all").addEventListener("click", () => { allItems.forEach(i => selected.add(i.id)); syncDemo(); });
+$("d-none").addEventListener("click", () => { selected.clear(); syncDemo(); });
+
+function syncDemo() {
+  document.querySelectorAll(".w-card").forEach(c => c.setAttribute("aria-checked", selected.has(c.dataset.id)));
+  const n = selected.size;
+  const canRevert = n > 0 && [...selected].every(id => !allItems.find(i => i.id === id).interactive);
+  $("d-count").textContent = `${n} selected`;
+  $("d-run").textContent = `Run tweaks (${n})`;
+  $("d-revert").textContent = `Revert (${n})`;
+  $("d-run").disabled = n === 0;
+  $("d-revert").disabled = !canRevert;
+}
+syncDemo();
+
+let busy = false;
+async function dialog(title, steps, summary) {
+  busy = true;
+  $("d-title").textContent = title;
+  $("d-log").innerHTML = "";
+  $("d-bar").style.width = "0";
+  $("d-close").classList.remove("show");
+  $("d-overlay").classList.add("open");
+  const log = (text, cls) => {
+    const line = document.createElement("div");
+    line.className = cls; line.textContent = text;
+    $("d-log").appendChild(line); $("d-log").scrollTop = 1e6;
+  };
+  for (let i = 0; i < steps.length; i++) {
+    log(steps[i][0], "running");
+    await wait(380);
+    log(steps[i][1], "ok");
+    $("d-bar").style.width = `${Math.round((i + 1) * 100 / steps.length)}%`;
+    await wait(140);
+  }
+  if (summary) log(summary, "done");
+  $("d-close").classList.add("show");
+  $("d-close").focus({ preventScroll: true });
+}
+function closeDialog() { $("d-overlay").classList.remove("open"); busy = false; }
+$("d-close").addEventListener("click", closeDialog);
+$("d-overlay").addEventListener("keydown", e => { if (e.key === "Escape" && $("d-close").classList.contains("show")) closeDialog(); });
+
+$("d-run").addEventListener("click", async () => {
+  if (busy) return;
+  const picked = allItems.filter(i => selected.has(i.id));
+  const silent = picked.filter(i => !i.interactive);
+  const inter = picked.filter(i => i.interactive);
+  if (!silent.length) {
+    $("d-status").textContent = `${inter.map(i => i.app).join(", ")} opens its own dialog in the app.`;
+    return;
+  }
+  await dialog("Running Scripts...", silent.map(s => [`Running: ${s.app}...`, `  ${s.app} - completed`]),
+    `All ${silent.length} script(s) completed successfully.`);
+  $("d-status").textContent = `Last run: ${silent.length}/${silent.length} scripts OK` + (inter.length ? ` · ${inter.map(i => i.app).join(", ")} opens its own dialog in the app` : "");
+});
+$("d-revert").addEventListener("click", async () => {
+  if (busy) return;
+  const picked = allItems.filter(i => selected.has(i.id));
+  await dialog("Reverting Tweaks...", picked.map(s => [`Reverting: ${s.app}...`, `  ${s.app} - reverted`]),
+    `All ${picked.length} tweak(s) reverted successfully.`);
+  $("d-status").textContent = `Last revert: ${picked.length}/${picked.length} scripts OK`;
+});
+$("d-restore").addEventListener("click", async () => {
+  if (busy) return;
+  await dialog("Creating Restore Point...", [["Creating restore point...", "Restore point created successfully."]]);
+});
+
+/* ---------- Before and after ---------- */
+const item = (ic, label, extra = "", cls = "") => `<div class="wm-item ${cls}">${ic ? icon(ic) : ""}<span>${label}</span>${extra}</div>`;
+const sc = t => `<span class="sc">${t}</span>`;
+const chev = icon("chev-right", "chev");
+const sep = `<div class="wm-sep"></div>`;
+const taskbar = active => `
+  <div class="taskbar">
+    <div class="tb${active === "start" ? " active" : ""}"><span class="winlogo"><i></i><i></i><i></i><i></i></span></div>
+    <div class="tb">${icon("search")}</div>
+    <div class="tb run">${icon("folder")}</div>
+    <div class="tb run">${icon("globe")}</div>
+    <div class="tb run${active === "notepad" ? " active" : ""}">${icon("file-text")}</div>
+    <div class="tb">${icon("terminal")}</div>
+  </div>`;
+
+const SCENES = {
+  menu: {
+    before: { title: "“Show more options” hides the rest", sub: "Windows 11 default context menu" },
+    after: { title: "Classic right-click menu", sub: "InprocServer32 (Default) = \"\"" },
+    render: after => `
+      <div class="file-tile">${icon("file-text")}Quarterly report.docx</div>
+      ${after ? `
+      <div class="wm classic wm-file" style="left:152px;top:72px">
+        ${item("", "Open")}${item("", "New")}${item("", "Print")}${sep}
+        ${item("", "Open with", chev)}${item("", "Give access to", chev)}${item("", "Restore previous versions")}${sep}
+        ${item("", "Send to", chev)}${sep}
+        ${item("", "Cut")}${item("", "Copy")}${sep}
+        ${item("", "Create shortcut")}${item("", "Delete")}${item("", "Rename")}${sep}
+        ${item("", "Properties")}
+      </div>` : `
+      <div class="wm wm-file" style="left:152px;top:72px">
+        <div class="wm-icons"><span>${icon("scissors")}</span><span>${icon("copy")}</span><span>${icon("rename")}</span><span>${icon("share")}</span><span>${icon("trash")}</span></div>
+        ${sep}
+        ${item("file", "Open", sc("Enter"))}${item("app", "Open with", chev)}${item("archive", "Compress to ZIP file")}
+        ${item("link", "Copy as path", sc("Ctrl+Shift+C"))}${item("wrench", "Properties", sc("Alt+Enter"))}${sep}
+        ${item("more", "Show more options", sc("Shift+F10"), "hl")}
+      </div>`}`,
+  },
+  power: {
+    before: { title: "Only the update versions while an update waits", sub: "ShutdownFlyoutOptions = 0xA, the Windows default" },
+    after: { title: "Shut down and Restart are back", sub: "ShutdownFlyoutOptions = 0xF" },
+    render: after => {
+      const upd = (ic, label) => `<div class="wm-item"><span class="dot-upd">${icon(ic)}</span><span>${label}</span></div>`;
+      const list = after
+        ? item("lock", "Lock") + item("moon", "Sleep") + upd("power", "Update and shut down") + item("power", "Shut down", "", "new") + upd("restart", "Update and restart") + item("restart", "Restart", "", "new")
+        : item("lock", "Lock") + item("moon", "Sleep") + upd("power", "Update and shut down") + upd("restart", "Update and restart");
+      return `
+        <div class="startmenu">
+          <div class="sm-search" style="margin-top:64px">${icon("search")}Search for apps, settings and documents</div>
+          <div class="sm-pinned"><h5>Pinned</h5><div class="sm-grid">${[["settings","Settings"],["folder","File Explorer"],["file-text","Notepad"],["terminal","Terminal"],["globe","Browser"],["app","Snipping Tool"]].map(([i,l]) => `<div class="sm-app">${icon(i)}${l}</div>`).join("")}</div></div>
+          <div class="startmenu-foot"><span class="avatar">JN</span>Jana Nováková<span class="power-btn">${icon("power")}</span></div>
+        </div>
+        <div class="wm wm-power" style="width:228px;left:calc(50% - 12px);bottom:${60 + 56}px">${list}</div>
+        ${taskbar("start")}`;
+    },
+  },
+  taskbar: {
+    before: { title: "A frozen app means opening Task Manager", sub: "Windows 11 default taskbar menu" },
+    after: { title: "End task, right on the taskbar", sub: "TaskbarEndTask = 1" },
+    render: after => `
+      <div class="wm wm-jump" style="width:256px;left:calc(50% - 62px);bottom:60px">
+        <div class="wm-head">Recent</div>
+        ${item("file-text", "shopping list.txt")}${item("file-text", "meeting notes.txt")}${sep}
+        ${item("file-text", "Notepad")}${item("pin-off", "Unpin from taskbar")}
+        ${after ? item("ban", "End task", "", "new") : ""}
+        ${item("x", "Close window")}
+      </div>
+      ${taskbar("notepad")}`,
+  },
+};
+
+let scene = "menu", state = "after";
+function renderScene() {
+  const s = SCENES[scene], el = $("scene");
+  el.classList.remove("swap"); void el.offsetWidth; el.classList.add("swap");
+  el.innerHTML = s.render(state === "after");
+  const cap = s[state];
+  $("ba-cap").innerHTML = `<b>${esc(cap.title)}</b><span>${esc(cap.sub)}</span>`;
+  document.querySelectorAll("[data-scene]").forEach(b => b.setAttribute("aria-selected", b.dataset.scene === scene));
+  document.querySelectorAll("[data-state]").forEach(b => b.setAttribute("aria-pressed", b.dataset.state === state));
+}
+document.querySelectorAll("[data-scene]").forEach(b => b.addEventListener("click", () => { scene = b.dataset.scene; state = "before"; renderScene(); }));
+document.querySelectorAll("[data-state]").forEach(b => b.addEventListener("click", () => { state = b.dataset.state; renderScene(); }));
+renderScene();
+
+/* ---------- Tweaks explorer ---------- */
+const DOCS = "https://tomandes.eu/KASPARDocs/scripts.html";
+const rows = [];
+CATALOG.forEach(cat => {
+  const g = document.createElement("div");
+  g.innerHTML = `<h3 class="group-name">${esc(cat.name)}</h3><div class="rows" role="listbox" aria-label="${esc(cat.name)}"></div>`;
+  cat.items.forEach(it => {
+    const b = document.createElement("button");
+    b.className = "row";
+    b.setAttribute("role", "option");
+    const mod = it.tag === "Moderate";
+    b.innerHTML = `<span class="row-name">${esc(it.name)}</span><span class="row-tag"><span class="dot${mod ? " mod" : ""}"></span>${it.tag}</span>`;
+    b.addEventListener("click", () => select(rows.findIndex(x => x.b === b)));
+    g.querySelector(".rows").appendChild(b);
+    rows.push({ b, it, cat });
+  });
+  $("list").appendChild(g);
+});
+$("list").addEventListener("keydown", e => {
+  const i = rows.findIndex(x => x.b === document.activeElement);
+  if (i < 0) return;
+  const next = e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? i - 1 : -2;
+  if (next < -1) return;
+  e.preventDefault();
+  const j = Math.max(0, Math.min(rows.length - 1, next));
+  rows[j].b.focus(); select(j);
+});
+
+function select(i) {
+  const { it, cat } = rows[i];
+  rows.forEach((x, k) => { x.b.setAttribute("aria-selected", k === i); x.b.tabIndex = k === i ? 0 : -1; });
+  const body = it.writes
+    ? it.writes.map(w => `<div class="w-entry"><div class="path"><span class="hive">${w.hive}</span>\\${esc(w.path)}</div><div class="val"><span class="k">${esc(w.name)}</span><span class="t">${w.type}</span><span><span class="set">${esc(w.set)}</span> <span class="rev">· revert ${esc(w.rev)}</span></span></div></div>`).join("")
+    : "";
+  const note = it.note ? `<div class="note">${esc(it.note)}</div>` : "";
+  const n = it.writes ? it.writes.length : 0;
+  $("detail").innerHTML = `
+    <div class="detail-top">
+      <div class="detail-cat">${esc(cat.name)}</div>
+      <h3>${esc(it.name)}</h3>
+      <p>${esc(it.desc)}</p>
+    </div>
+    <div class="term">
+      <div class="term-bar"><b>&lt;_</b>${n ? `writes ${n} value${n > 1 ? "s" : ""}` : "no registry writes"}</div>
+      <div class="term-body">${body}${note}</div>
+    </div>
+    <div class="detail-foot">
+      <span class="row-tag"><span class="dot${it.tag === "Moderate" ? " mod" : ""}"></span>${it.tag}</span>
+      <a href="${DOCS}${it.docs ? "#" + it.docs : ""}">Read in docs${icon("arrow-up-right", "ico")}</a>
+    </div>`;
+}
+select(rows.findIndex(x => x.it.id === "startads"));
+
+/* ---------- Latest release, kept current from GitHub ---------- */
+fetch("https://api.github.com/repos/tomandesMSH/KASPAR/releases/latest")
+  .then(res => res.ok ? res.json() : null)
+  .then(rel => {
+    if (!rel) return;
+    const v = "v" + String(rel.tag_name).replace(/^v/i, "");
+    document.querySelectorAll("[data-version]").forEach(el => el.textContent = v);
+    const setup = (rel.assets || []).find(a => a.name === "KASPAR-win-Setup.exe");
+    if (setup) document.querySelectorAll("[data-setup-size]").forEach(el => el.textContent = Math.round(setup.size / 1048576) + " MB");
+  })
+  .catch(() => {});
+</script>
+</body>
+</html>
